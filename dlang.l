@@ -13,7 +13,7 @@
 
 %}
 
-%option warn nodefault
+%option warn nodefault debug
 %option header-file="dlang_lex.h"
 
 %option reentrant noyywrap never-interactive nounistd
@@ -305,6 +305,7 @@ L?'(\\.|[^\\'])+'	{ sscanf(yytext, "%d", &yylval->ivalue); return(TOK_INT_CONSTA
 
 [ \t\v\n\f]		{ }
 .			{ /* ignore bad characters */ }
+"//[^\n]*"              { /* ignore comments */ }
 
 
 %%

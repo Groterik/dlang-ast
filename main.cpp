@@ -9,6 +9,25 @@
 #include <stdio.h>
 #include <iostream>
 
+#include <fstream>
+#include <string>
+#include <cerrno>
+
+void getFileContents(std::string& contents, const char *filename)
+{
+  std::ifstream in(filename, std::ios::in | std::ios::binary);
+  if (in)
+  {
+    in.seekg(0, std::ios::end);
+    contents.resize(in.tellg());
+    in.seekg(0, std::ios::beg);
+    in.read(&contents[0], contents.size());
+    in.close();
+    return;
+  }
+  throw(errno);
+}
+
 int yyparse(Expression **expression, yyscan_t scanner);
 
 Expression *getAST(const char *expr)
@@ -39,10 +58,12 @@ Expression *getAST(const char *expr)
 int main(void)
 {
     Expression *e = NULL;
-    char test[]="module a.b;";
-    int result = 0;
 
-    e = getAST(test);
+    std::string str;
+
+    getFileContents(str, "test.d");
+
+    e = getAST(str.c_str());
 
     std::cout << e->name() << std::endl;
 

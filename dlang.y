@@ -5,7 +5,7 @@
 #include "dast.h"
 
 int yyerror(Expression **expression, yyscan_t scanner, const char *msg) {
-    // Add error handling routine as needed
+    std::cout << "Error: " << msg << std::endl;
 }
 
 %}
@@ -16,6 +16,8 @@ int yyerror(Expression **expression, yyscan_t scanner, const char *msg) {
 #include <iostream>
 
 #define TRACE std::clog<<__FILE__<<' '<<__LINE__<<'\n'
+
+#define YYDEBUG 1
 
 #ifndef YY_TYPEDEF_YY_SCANNER_T
 #define YY_TYPEDEF_YY_SCANNER_T
@@ -34,6 +36,7 @@ typedef void* yyscan_t;
     double rvalue;
     const char* str;
     Expression *expression;
+    ExprList *list;
 }
 
 %left '+' TOK_PLUS
@@ -238,20 +241,25 @@ typedef void* yyscan_t;
 %type <expression> ModuleName
 %type <expression> Packages
 %type <expression> PackageName
-%type <expression> DeclDefs
-%type <expression> DeclDefsopt
+%type <expression> DeclDef
+%type <list> DeclDefsopt
+%type <list> DeclDefs
+%type <expression> ImportDeclaration
+%type <list> ImportList
+%type <expression> Import
 
 %%
 
 input
     : Module { *expression = $1; }
+    | error { /**expression = $1;*/ yyerrok; }
     ;
 
 /* ***** Modules ***** */
 
 Module
-    : ModuleDeclaration DeclDefsopt { TRACE; $$ = $1; $$->addChild($2); }
-    | DeclDefs {}
+    : ModuleDeclaration DeclDefsopt { $$ = new Module($1->name()); $$->addChild($2); delete $2; }
+    | DeclDefs { $$ = new Module(); if ($1) $$->addChild($1); delete $1; }
     ;
 
 DeclDefsopt
@@ -260,13 +268,13 @@ DeclDefsopt
     ;
 
 DeclDefs
-    : DeclDef {}
-    | DeclDef DeclDefs {}
+    : DeclDef { $$ = new ExprList; $$->push_back($1); }
+    | DeclDef DeclDefs { $2->push_front($1); $$ = $2; }
     ;
 
 DeclDef
     : AttributeSpecifier {}
-    | ImportDeclaration {}
+    | ImportDeclaration { $$ = $1; }
     | EnumDeclaration {}
     | ClassDeclaration {}
     | InterfaceDeclaration {}
@@ -314,19 +322,19 @@ PackageName
 /* ***** Import Declaration ***** */
 
 ImportDeclaration
-    : TOK_IMPORT ImportList TOK_SEMICOLON { printf(" importdecl "); }
-    | TOK_STATIC TOK_IMPORT ImportList TOK_SEMICOLON { printf(" importdecl "); }
+    : TOK_IMPORT ImportList TOK_SEMICOLON { $$ = new Import; $$->addChild($2); delete $2; }
+    | TOK_STATIC TOK_IMPORT ImportList TOK_SEMICOLON { $$ = new Import; $$->addChild($3); delete $3; }
     ;
 
 ImportList
-    : Import { printf(" importlist "); }
-    | ImportBindings { printf(" importlist "); }
-    | Import TOK_COMMA ImportList { printf(" importlist "); }
+    : Import { $$ = new ExprList; $$->push_back($1);  }
+    | ImportBindings { }
+    | Import TOK_COMMA ImportList { $3->push_front($1); $$ = $3; }
     ;
 
 Import
-    : ModuleFullyQualifiedName { printf(" import "); }
-    | ModuleAliasIdentifier TOK_COLON ModuleFullyQualifiedName { printf(" import2 "); }
+    : ModuleFullyQualifiedName { $$ = new Import($$->name()); }
+    | ModuleAliasIdentifier TOK_COLON ModuleFullyQualifiedName { $$ = new Import($$->name()); }
     ;
 
 ImportBindings
