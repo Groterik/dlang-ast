@@ -1,11 +1,10 @@
 %{
-
 #include "dlang_grm.hpp"
 #include "dlang_lex.h"
 #include "dast.h"
 
-int yyerror(Expression **expression, yyscan_t scanner, const char *msg) {
-    std::cout << "Error: " << msg << std::endl;
+int yyerror(YYLTYPE* loc, ModuleNode **mainnode, yyscan_t scanner, const char *msg) {
+    std::cout << "Error[" << loc->first_line << ": " << msg << std::endl;
 }
 
 %}
@@ -28,15 +27,16 @@ typedef void* yyscan_t;
 
 %define api.pure
 %lex-param   { yyscan_t scanner }
-%parse-param { Expression **expression }
+%parse-param { ModuleNode **mainnode }
 %parse-param { yyscan_t scanner }
+%locations
 
 %union {
     int ivalue;
     double rvalue;
     const char* str;
-    Expression *expression;
-    ExprList *list;
+    Node *node;
+    ModuleNode* module;
 }
 
 %left '+' TOK_PLUS
@@ -235,31 +235,312 @@ typedef void* yyscan_t;
 %token <ivalue> TOK_INT_CONSTANT
 %token <rvalue> TOK_REAL_CONSTANT
 
-%type <expression> Module
-%type <expression> ModuleDeclaration
-%type <expression> ModuleFullyQualifiedName
-%type <expression> ModuleName
-%type <expression> Packages
-%type <expression> PackageName
-%type <expression> DeclDef
-%type <list> DeclDefsopt
-%type <list> DeclDefs
-%type <expression> ImportDeclaration
-%type <list> ImportList
-%type <expression> Import
+%type <module> Module
+
+%type <node> Identifier
+%type <node> Identifieropt
+%type <node> IdentifierList
+
+%type <node> ModuleDeclaration
+%type <node> ModuleFullyQualifiedName
+%type <node> ModuleName
+%type <node> Packages
+%type <node> PackageName
+%type <node> DeclDef
+%type <node> DeclDefsopt
+%type <node> DeclDefs
+%type <node> ImportDeclaration
+%type <node> ImportList
+%type <node> Import
+
+%type <node> Declaration
+%type <node> AliasDeclaration /* TODO */
+%type <node> AliasThisDeclaration /* TODO */
+%type <node> Decl /* TODO */
+
+%type <node> ClassDeclaration
+%type <node> ClassBody
+%type <node> ClassTemplateDeclaration /* TODO */
+%type <node> ClassBodyDeclarations
+%type <node> ClassBodyDeclaration
+%type <node> Constructor
+%type <node> Parameters
+%type <node> Parameter
+%type <node> ParameterList
+%type <node> FunctionBody
+
+%type <node> BasicTypeX
+%type <node> BasicType
+%type <node> Type
+%type <node> Declarator
+
+
+/* NOT IMPLEMENTED LIST */
+%type <node> ImportBindings
+%type <node> ImportBindList
+%type <node> ImportBind
+%type <node> ModuleAliasIdentifier
+%type <node> AliasInitializerList
+%type <node> AliasInitializer
+%type <node> Declarators
+%type <node> DeclaratorInitializer
+%type <node> DeclaratorIdentifierList
+%type <node> DeclaratorIdentifier
+%type <node> BasicType2opt
+%type <node> BasicType2
+%type <node> DeclaratorSuffixesopt
+%type <node> DeclaratorSuffixes
+%type <node> Constraintopt
+%type <node> DeclaratorSuffix
+%type <node> StorageClasses
+%type <node> StorageClass
+%type <node> TypeCtors
+%type <node> TypeCtorsopt
+%type <node> TypeCtor
+%type <node> Typeopt
+%type <node> Declarator2
+%type <node> InOutopt
+%type <node> InOut
+%type <node> InOutX
+%type <node> FunctionAttributesopt
+%type <node> FunctionAttributes
+%type <node> FunctionAttribute
+%type <node> MemberFunctionAttributesopt
+%type <node> MemberFunctionAttributes
+%type <node> MemberFunctionAttribute
+%type <node> DefaultInitializerExpression
+%type <node> Initializer
+%type <node> NonVoidInitializer
+%type <node> ArrayInitializer
+%type <node> ArrayMemberInitializations
+%type <node> ArrayMemberInitialization
+%type <node> StructInitializer
+%type <node> StructMemberInitializers
+%type <node> StructMemberInitializer
+%type <node> AutoDeclaration
+%type <node> AutoDeclarationX
+%type <node> Typeof
+%type <node> VoidInitializer
+%type <node> AttributeSpecifier
+%type <node> Attribute
+%type <node> Property
+%type <node> PropertyIdentifier
+%type <node> DeclarationBlock
+%type <node> LinkageAttribute
+%type <node> LinkageType
+%type <node> AlignAttribute
+%type <node> DeprecatedAttribute
+%type <node> ProtectionAttribute
+%type <node> UserDefinedAttribute
+%type <node> Pragma
+%type <node> Expressionopt
+%type <node> Expression
+%type <node> CommaExpression
+%type <node> AssignExpression
+%type <node> ConditionalExpression
+%type <node> OrOrExpression
+%type <node> AndAndExpression
+%type <node> OrExpression
+%type <node> XorExpression
+%type <node> AndExpression
+%type <node> CmpExpression
+%type <node> EqualExpression
+%type <node> IdentityExpression
+%type <node> RelExpression
+%type <node> InExpression
+%type <node> ShiftExpression
+%type <node> AddExpression
+%type <node> CatExpression
+%type <node> MulExpression
+%type <node> UnaryExpression
+%type <node> ComplementExpression
+%type <node> NewExpression
+%type <node> NewExpressionWithArgs
+%type <node> AllocatorArgumentsopt
+%type <node> AllocatorArguments
+%type <node> ArgumentListopt
+%type <node> ArgumentList
+%type <node> DeleteExpression
+%type <node> CastExpression
+%type <node> CastQual
+%type <node> PowExpression
+%type <node> PostfixExpression
+%type <node> IndexExpression
+%type <node> SliceExpression
+%type <node> PrimaryExpression
+%type <node> StringLiterals
+%type <node> ArrayLiteral
+%type <node> AssocArrayLiteral
+%type <node> KeyValuePairs
+%type <node> KeyValuePair
+%type <node> KeyExpression
+%type <node> ValueExpression
+%type <node> Lambda
+%type <node> FunctionLiteral
+%type <node> ParameterAttributesopt
+%type <node> ParameterAttributes
+%type <node> AssertExpression
+%type <node> MixinExpression
+%type <node> ImportExpression
+%type <node> TypeidExpression
+%type <node> IsExpression
+%type <node> TypeSpecialization
+%type <node> Statement
+%type <node> NoScopeNonEmptyStatement
+%type <node> NoScopeStatement
+%type <node> NonEmptyOrScopeBlockStatement
+%type <node> NonEmptyStatement
+%type <node> NonEmptyStatementNoCaseNoDefault
+%type <node> ScopeStatement
+%type <node> ScopeBlockStatement
+%type <node> LabeledStatement
+%type <node> BlockStatement
+%type <node> StatementList
+%type <node> ExpressionStatement
+%type <node> DeclarationStatement
+%type <node> IfStatement
+%type <node> IfCondition
+%type <node> ThenStatement
+%type <node> ElseStatement
+%type <node> WhileStatement
+%type <node> DoStatement
+%type <node> ForStatement
+%type <node> Initialize
+%type <node> Testopt
+%type <node> Test
+%type <node> Incrementopt
+%type <node> Increment
+%type <node> ForeachStatement
+%type <node> Foreach
+%type <node> ForeachTypeList
+%type <node> Refopt
+%type <node> ForeachType
+%type <node> Aggregate
+%type <node> ForeachRangeStatement
+%type <node> LwrExpression
+%type <node> UprExpression
+%type <node> SwitchStatement
+%type <node> CaseStatement
+%type <node> CaseRangeStatement
+%type <node> FirstExp
+%type <node> LastExp
+%type <node> DefaultStatement
+%type <node> ScopeStatementList
+%type <node> StatementListNoCaseNoDefault
+%type <node> StatementNoCaseNoDefault
+%type <node> FinalSwitchStatement
+%type <node> ContinueStatement
+%type <node> BreakStatement
+%type <node> ReturnStatement
+%type <node> GotoStatement
+%type <node> WithStatement
+%type <node> SynchronizedStatement
+%type <node> TryStatement
+%type <node> Catches
+%type <node> LastCatch
+%type <node> Catch
+%type <node> CatchParameter
+%type <node> FinallyStatement
+%type <node> ThrowStatement
+%type <node> ScopeGuardStatement
+/*%type <node> AsmInstructionList*/
+%type <node> PragmaStatement
+%type <node> MixinStatement
+%type <node> AggregateDeclaration
+%type <node> StructBody
+%type <node> StructBodyDeclarations
+%type <node> StructBodyDeclaration
+%type <node> StructAllocator
+%type <node> StructDeallocator
+%type <node> StructPostblit
+%type <node> BaseClassListopt
+%type <node> BaseClassList
+%type <node> SuperClassopt
+%type <node> SuperClass
+%type <node> Interfacesopt
+%type <node> Interfaces
+%type <node> Interface
+%type <node> Destructor
+%type <node> StaticConstructor
+%type <node> StaticDestructor
+%type <node> SharedStaticConstructor
+%type <node> SharedStaticDestructor
+%type <node> Invariant
+%type <node> ClassAllocator
+%type <node> ClassDeallocator
+%type <node> AliasThis
+%type <node> NewAnonClassExpression
+%type <node> ClassArgumentsopt
+%type <node> ClassArguments
+%type <node> InterfaceDeclaration
+%type <node> BaseInterfaceListopt
+%type <node> BaseInterfaceList
+%type <node> InterfaceBody
+%type <node> EnumDeclaration
+%type <node> EnumTag
+%type <node> EnumBaseType
+%type <node> EnumBody
+%type <node> EmptyEnumBody
+%type <node> EnumMembersBody
+%type <node> EnumMembers
+%type <node> EnumMember
+%type <node> InStatement
+%type <node> OutStatement
+%type <node> BodyStatement
+%type <node> TemplateDeclaration
+%type <node> TemplateIdentifier
+%type <node> TemplateParametersopt
+%type <node> TemplateParameters
+%type <node> TemplateParameterList
+%type <node> TemplateParameter
+%type <node> TemplateInstance
+%type <node> TemplateArgumentsopt
+%type <node> TemplateArguments
+%type <node> TemplateArgumentList
+%type <node> TemplateArgument
+%type <node> Symbol
+%type <node> SymbolTail
+%type <node> TemplateSingleArgument
+%type <node> TemplateTypeParameter
+%type <node> TemplateTypeParameterSpecialization
+%type <node> TemplateTypeParameterDefault
+%type <node> TemplateThisParameter
+%type <node> TemplateValueParameter
+%type <node> TemplateValueParameterSpecialization
+%type <node> TemplateValueParameterDefault
+%type <node> TemplateAliasParameter
+%type <node> TemplateAliasParameterSpecializationopt
+%type <node> TemplateAliasParameterSpecialization
+%type <node> TemplateAliasParameterDefaultopt
+%type <node> TemplateAliasParameterDefault
+%type <node> TemplateTupleParameter
+%type <node> TemplatedConstructor
+%type <node> StructTemplateDeclaration
+%type <node> UnionTemplateDeclaration
+%type <node> InterfaceTemplateDeclaration
+%type <node> Constraint
+%type <node> ConstraintExpression
+%type <node> TemplateMixinDeclaration
+%type <node> TemplateMixin
+%type <node> MixinTemplateName
+%type <node> QualifiedIdentifierList
+%type <node> MixinIdentifieropt
+%type <node> MixinIdentifier
+%type <node> MixinDeclaration
+%type <node> UnitTest
 
 %%
 
 input
-    : Module { *expression = $1; }
-    | error { /**expression = $1;*/ yyerrok; }
+    : Module { *mainnode = $1; }
+    | error { yyerrok; }
     ;
 
 /* ***** Modules ***** */
 
 Module
-    : ModuleDeclaration DeclDefsopt { $$ = new Module($1->name()); $$->addChild($2); delete $2; }
-    | DeclDefs { $$ = new Module(); if ($1) $$->addChild($1); delete $1; }
+    : ModuleDeclaration DeclDefsopt { $$ = new ModuleNode($1->name()); delete $1; $$->addChild($2);}
+    | DeclDefs { $$ = new ModuleNode(); if ($1) $$->addChild($1); }
     ;
 
 DeclDefsopt
@@ -268,8 +549,8 @@ DeclDefsopt
     ;
 
 DeclDefs
-    : DeclDef { $$ = new ExprList; $$->push_back($1); }
-    | DeclDef DeclDefs { $2->push_front($1); $$ = $2; }
+    : DeclDef { $$ = new NodeList; $$->addChild($1); }
+    | DeclDef DeclDefs { $2->addChild($1); $$ = $2; }
     ;
 
 DeclDef
@@ -300,41 +581,41 @@ DeclDef
 
 
 ModuleDeclaration
-    : TOK_MODULE ModuleFullyQualifiedName TOK_SEMICOLON { $$ = new Expression(MODULE, $2->name()); delete $2; }
+    : TOK_MODULE ModuleFullyQualifiedName TOK_SEMICOLON { $$ = $2; }
     ;
 ModuleFullyQualifiedName
     : ModuleName { $$ = $1; }
-    | Packages TOK_DOT ModuleName { $$ = new Identifier($1->name() + "." + $3->name()); delete $1; delete $3; }
+    | Packages TOK_DOT ModuleName { $$ = new ModuleNode($1->name() + "." + $3->name()); delete $1; delete $3; }
     ;
 
 ModuleName
-    : TOK_IDENTIFIER { $$ = new Identifier($1); delete $1; }
+    : Identifier { $$ = $1; }
     ;
 
 Packages
     : PackageName { $$ = $1; }
-    | Packages TOK_DOT PackageName { $$ = new Identifier($1->name() + "." + $3->name()); delete $1; delete $3; }
+    | Packages TOK_DOT PackageName { $$ = new IdentifierNode($1->name() + "." + $3->name()); delete $1; delete $3; }
     ;
 PackageName
-    : TOK_IDENTIFIER { $$ = new Identifier($1); delete $1; }
+    : Identifier { $$ = $1; }
     ;
 
 /* ***** Import Declaration ***** */
 
 ImportDeclaration
-    : TOK_IMPORT ImportList TOK_SEMICOLON { $$ = new Import; $$->addChild($2); delete $2; }
-    | TOK_STATIC TOK_IMPORT ImportList TOK_SEMICOLON { $$ = new Import; $$->addChild($3); delete $3; }
+    : TOK_IMPORT ImportList TOK_SEMICOLON { $$ = $2; }
+    | TOK_STATIC TOK_IMPORT ImportList TOK_SEMICOLON { $$ = $3; }
     ;
 
 ImportList
-    : Import { $$ = new ExprList; $$->push_back($1);  }
+    : Import { $$ = new NodeList; $$->addChild($1);  }
     | ImportBindings { }
-    | Import TOK_COMMA ImportList { $3->push_front($1); $$ = $3; }
+    | Import TOK_COMMA ImportList { $3->addChild($1); $$ = $3; }
     ;
 
 Import
-    : ModuleFullyQualifiedName { $$ = new Import($$->name()); }
-    | ModuleAliasIdentifier TOK_COLON ModuleFullyQualifiedName { $$ = new Import($$->name()); }
+    : ModuleFullyQualifiedName { $$ = new ImportNode($$->name()); }
+    | ModuleAliasIdentifier TOK_COLON ModuleFullyQualifiedName { $$ = new ImportNode($$->name()); }
     ;
 
 ImportBindings
@@ -358,9 +639,9 @@ ModuleAliasIdentifier
 /* ***** Declarations ***** */
 
 Declaration
-    : AliasDeclaration { printf(" decl "); }
-    | AliasThisDeclaration { printf(" decl "); }
-    | Decl { printf(" decl "); }
+    : AliasDeclaration { $$ = 0; } /* TODO */
+    | AliasThisDeclaration { $$ = 0; } /* TODO */
+    | Decl { $$ = $1; } /* TODO */
     ;
 
 AliasDeclaration
@@ -382,67 +663,67 @@ AliasThisDeclaration
     ;
 
 Decl
-    : StorageClasses Decl {}
-    | BasicType Declarators TOK_SEMICOLON {}
-    | BasicType Declarator FunctionBody {}
-    | AutoDeclaration {}
+    : StorageClasses Decl { $$ = $2; }
+    | BasicType Declarators TOK_SEMICOLON { $$ = new DeclarationTypedList($1); $$->addChild($2); }
+    | BasicType Declarator FunctionBody { $$ = new DeclarationNode($1, $2); $$->addChild($3); }
+    | AutoDeclaration { $$ = 0; } /* TODO */
     ;
 
 Declarators
-    : DeclaratorInitializer {}
-    | DeclaratorInitializer TOK_COMMA DeclaratorIdentifierList {}
+    : DeclaratorInitializer { $$ = new NodeList; $$->addChild($1); }
+    | DeclaratorInitializer TOK_COMMA DeclaratorIdentifierList { $$ = $3; $$->addChild($1); }
     ;
 
 DeclaratorInitializer
-    : Declarator {}
-    | Declarator TOK_ASSIGN Initializer {}
+    : Declarator { $$ = $1; }
+    | Declarator TOK_ASSIGN Initializer { $$ = $1; }
     ;
 
 DeclaratorIdentifierList
-    : DeclaratorIdentifier {}
-    | DeclaratorIdentifier TOK_COMMA DeclaratorIdentifierList {}
+    : DeclaratorIdentifier { $$ = new NodeList; $$->addChild($1); }
+    | DeclaratorIdentifier TOK_COMMA DeclaratorIdentifierList { $$ = $3; $$->addChild($1); }
     ;
 
 DeclaratorIdentifier
-    : TOK_IDENTIFIER {}
-    | TOK_IDENTIFIER TOK_ASSIGN Initializer {}
+    : Identifier { $$ = $1; }
+    | Identifier TOK_ASSIGN Initializer { $$ = $1; }
     ;
 
 BasicType
-    : BasicTypeX {}
-    | TOK_DOT IdentifierList {}
-    | IdentifierList {}
-    | Typeof {}
-    | Typeof TOK_DOT IdentifierList {}
-    | TOK_CONST TOK_LEFT_PAR Type TOK_RIGHT_PAR {}
-    | TOK_IMMUTABLE TOK_LEFT_PAR Type TOK_RIGHT_PAR {}
-    | TOK_SHARED TOK_LEFT_PAR Type TOK_RIGHT_PAR {}
-    | TOK_INOUT TOK_LEFT_PAR Type TOK_RIGHT_PAR {}
+    : BasicTypeX { $$ = $1; }
+    | TOK_DOT IdentifierList { $$ = 0; } /* TODO */
+    | IdentifierList { $$ = $1; }
+    | Typeof { $$ = 0; }  /* TODO */
+    | Typeof TOK_DOT IdentifierList {}  /* TODO */
+    | TOK_CONST TOK_LEFT_PAR Type TOK_RIGHT_PAR { $$ = $3; }
+    | TOK_IMMUTABLE TOK_LEFT_PAR Type TOK_RIGHT_PAR { $$ = $3; }
+    | TOK_SHARED TOK_LEFT_PAR Type TOK_RIGHT_PAR { $$ = $3; }
+    | TOK_INOUT TOK_LEFT_PAR Type TOK_RIGHT_PAR { $$ = $3; }
     ;
 
 BasicTypeX
-    : TOK_BOOL {}
-    | TOK_BYTE {}
-    | TOK_UBYTE {}
-    | TOK_SHORT {}
-    | TOK_USHORT {}
-    | TOK_INT {}
-    | TOK_UINT {}
-    | TOK_LONG {}
-    | TOK_ULONG {}
-    | TOK_CHAR {}
-    | TOK_WCHAR {}
-    | TOK_DCHAR {}
-    | TOK_FLOAT {}
-    | TOK_DOUBLE {}
-    | TOK_REAL {}
-    | TOK_IFLOAT {}
-    | TOK_IDOUBLE {}
-    | TOK_IREAL {}
-    | TOK_CFLOAT {}
-    | TOK_CDOUBLE {}
-    | TOK_CREAL {}
-    | TOK_VOID {}
+    : TOK_BOOL { $$ = new PrimitiveTypeNode(PrimitiveTypeNode::BOOL); }
+    | TOK_BYTE { $$ = new PrimitiveTypeNode(PrimitiveTypeNode::BYTE); }
+    | TOK_UBYTE { $$ = new PrimitiveTypeNode(PrimitiveTypeNode::UBYTE); }
+    | TOK_SHORT { $$ = new PrimitiveTypeNode(PrimitiveTypeNode::SHORT); }
+    | TOK_USHORT { $$ = new PrimitiveTypeNode(PrimitiveTypeNode::USHORT); }
+    | TOK_INT { $$ = new PrimitiveTypeNode(PrimitiveTypeNode::INT); }
+    | TOK_UINT { $$ = new PrimitiveTypeNode(PrimitiveTypeNode::UINT); }
+    | TOK_LONG { $$ = new PrimitiveTypeNode(PrimitiveTypeNode::LONG); }
+    | TOK_ULONG { $$ = new PrimitiveTypeNode(PrimitiveTypeNode::ULONG); }
+    | TOK_CHAR { $$ = new PrimitiveTypeNode(PrimitiveTypeNode::CHAR); }
+    | TOK_WCHAR { $$ = new PrimitiveTypeNode(PrimitiveTypeNode::WCHAR); }
+    | TOK_DCHAR { $$ = new PrimitiveTypeNode(PrimitiveTypeNode::DCHAR); }
+    | TOK_FLOAT { $$ = new PrimitiveTypeNode(PrimitiveTypeNode::FLOAT); }
+    | TOK_DOUBLE { $$ = new PrimitiveTypeNode(PrimitiveTypeNode::DOUBLE); }
+    | TOK_REAL { $$ = new PrimitiveTypeNode(PrimitiveTypeNode::REAL); }
+    | TOK_IFLOAT { $$ = new PrimitiveTypeNode(PrimitiveTypeNode::IFLOAT); }
+    | TOK_IDOUBLE { $$ = new PrimitiveTypeNode(PrimitiveTypeNode::IDOUBLE); }
+    | TOK_IREAL { $$ = new PrimitiveTypeNode(PrimitiveTypeNode::IREAL); }
+    | TOK_CFLOAT { $$ = new PrimitiveTypeNode(PrimitiveTypeNode::CFLOAT); }
+    | TOK_CDOUBLE { $$ = new PrimitiveTypeNode(PrimitiveTypeNode::CDOUBLE); }
+    | TOK_CREAL { $$ = new PrimitiveTypeNode(PrimitiveTypeNode::CREAL); }
+    | TOK_VOID { $$ = new PrimitiveTypeNode(PrimitiveTypeNode::VOID); }
     ;
 
 BasicType2opt
@@ -461,8 +742,8 @@ BasicType2
     ;
 
 Declarator
-    : BasicType2opt TOK_LEFT_PAR Declarator TOK_RIGHT_PAR DeclaratorSuffixesopt {}
-    | BasicType2opt Identifier DeclaratorSuffixesopt {}
+    : BasicType2opt TOK_LEFT_PAR Declarator TOK_RIGHT_PAR DeclaratorSuffixesopt { $$ = $3; }
+    | BasicType2opt Identifier DeclaratorSuffixesopt { $$ = $2; }
     ;
 
 DeclaratorSuffixesopt
@@ -488,10 +769,10 @@ DeclaratorSuffix
     ;
 
 IdentifierList
-    : TOK_IDENTIFIER {}
-    | TOK_IDENTIFIER TOK_DOT IdentifierList {}
-    | TemplateInstance {}
-    | TemplateInstance TOK_DOT IdentifierList {}
+    : Identifier { $$ = new NodeList; $$->addChild($1); }
+    | Identifier TOK_DOT IdentifierList { $$ = $3; $$->addChild($1); }
+    | TemplateInstance { $$ = 0; } /* TODO */
+    | TemplateInstance TOK_DOT IdentifierList { $$ = 0; } /* TODO */
     ;
 
 StorageClasses
@@ -540,8 +821,8 @@ Typeopt
     ;
 
 Type
-    : TypeCtorsopt BasicType {}
-    | TypeCtorsopt BasicType Declarator2 {}
+    : TypeCtorsopt BasicType { $$ = $2; }
+    | TypeCtorsopt BasicType Declarator2 { $$ = $2; }
     ;
 
 Declarator2
@@ -550,22 +831,22 @@ Declarator2
     ;
 
 Parameters
-    : TOK_LEFT_PAR ParameterList TOK_RIGHT_PAR {}
-    | TOK_LEFT_PAR TOK_RIGHT_PAR {}
+    : TOK_LEFT_PAR ParameterList TOK_RIGHT_PAR { $$ = $2; }
+    | TOK_LEFT_PAR TOK_RIGHT_PAR { $$ = 0; }
     ;
 
 ParameterList
-    : Parameter {}
-    | Parameter TOK_COMMA ParameterList {}
-    | TOK_ELLIPSIS {}
+    : Parameter { $$ = new NodeList; $$->addChild($1); }
+    | Parameter TOK_COMMA ParameterList { $$ = $3; $$->addChild($1); }
+    | TOK_ELLIPSIS { $$ = 0; } /* TODO */
     ;
 
 Parameter
-    : InOutopt BasicType Declarator {}
-    | InOutopt BasicType Declarator TOK_ELLIPSIS {}
-    | InOutopt BasicType Declarator TOK_ASSIGN DefaultInitializerExpression {}
-    | InOutopt Type {}
-    | InOutopt Type TOK_ELLIPSIS {}
+    : InOutopt BasicType Declarator { $$ = new DeclarationNode($2, $3);}
+    | InOutopt BasicType Declarator TOK_ELLIPSIS { $$ = new DeclarationNode($2, $3); }
+    | InOutopt BasicType Declarator TOK_ASSIGN DefaultInitializerExpression { $$ = new DeclarationNode($2, $3); }
+    | InOutopt Type { $$ = new DeclarationNode($2, 0); }
+    | InOutopt Type TOK_ELLIPSIS { $$ = 0; } /* TODO */
     ;
 
 InOutopt
@@ -1232,7 +1513,7 @@ ScopeBlockStatement
 LabeledStatement
     : TOK_IDENTIFIER TOK_COLON {}
     | TOK_IDENTIFIER TOK_COLON NoScopeStatement {}
-    | TOK_IDENTIFIER TOK_COLON Statement
+    | TOK_IDENTIFIER TOK_COLON Statement {}
     ;
 
 BlockStatement
@@ -1392,12 +1673,12 @@ FinalSwitchStatement
 
 
 Identifieropt
-    : TOK_IDENTIFIER {}
-    | {}
+    : Identifier { $$ = $1; }
+    | { $$ = 0; }
     ;
 
 Identifier
-    : TOK_IDENTIFIER {}
+    : TOK_IDENTIFIER { $$ = new IdentifierNode($1); }
     ;
 
 ContinueStatement
@@ -1414,8 +1695,8 @@ ReturnStatement
 
 GotoStatement
     : TOK_GOTO Identifier TOK_SEMICOLON {}
-    | TOK_GOTO TOK_DEFAULT TOK_SEMICOLON
-    | TOK_GOTO TOK_CASE TOK_SEMICOLON
+    | TOK_GOTO TOK_DEFAULT TOK_SEMICOLON {}
+    | TOK_GOTO TOK_CASE TOK_SEMICOLON {}
     | TOK_GOTO TOK_CASE Expression TOK_SEMICOLON {}
     ;
 
@@ -1459,7 +1740,7 @@ FinallyStatement
     ;
 
 ThrowStatement
-    : TOK_THROW Expression TOK_SEMICOLON
+    : TOK_THROW Expression TOK_SEMICOLON {}
     ;
 
 ScopeGuardStatement
@@ -1531,8 +1812,8 @@ StructPostblit
 /* ***** Classes ***** */
 
 ClassDeclaration
-    : TOK_CLASS Identifier BaseClassListopt ClassBody {}
-    | ClassTemplateDeclaration {}
+    : TOK_CLASS Identifier BaseClassListopt ClassBody { $$ = new ClassNode($2->name()); delete $2; $$->addChild($4); $$->setPosition(@4.first_line, @4.last_line);}
+    | ClassTemplateDeclaration { $$ = $1; }
     ;
 
 BaseClassListopt
@@ -1570,25 +1851,25 @@ Interface
     ;
 
 ClassBody
-    : TOK_LEFT_BRACE TOK_RIGHT_BRACE {}
-    | TOK_LEFT_BRACE ClassBodyDeclarations TOK_RIGHT_BRACE {}
+    : TOK_LEFT_BRACE TOK_RIGHT_BRACE { $$ = 0; }
+    | TOK_LEFT_BRACE ClassBodyDeclarations TOK_RIGHT_BRACE { $$ = $2; }
     ;
 
 ClassBodyDeclarations
-    : ClassBodyDeclaration {}
-    | ClassBodyDeclaration ClassBodyDeclarations {}
+    : ClassBodyDeclaration { $$ = new NodeList; $$->addChild($1); }
+    | ClassBodyDeclaration ClassBodyDeclarations { $$ = $2; $$->addChild($1); }
     ;
 
 ClassBodyDeclaration
-    : DeclDef {}
-    | Invariant {}
-    | ClassAllocator {}
-    | ClassDeallocator {}
+    : DeclDef { $$ = $1; }
+    | Invariant { $$ = 0; } /* TODO */
+    | ClassAllocator { $$ = 0; } /* TODO */
+    | ClassDeallocator { $$ = 0; } /* TODO */
     ;
 
 Constructor
-    : TOK_THIS Parameters FunctionBody {}
-    | TemplatedConstructor {}
+    : TOK_THIS Parameters FunctionBody { $$ = new ConstructorNode($2); $$->addChild($3); $$->setPosition(@3.first_line, @3.last_line); }
+    | TemplatedConstructor {$$ = 0;} /* TODO */
     ;
 
 Destructor
@@ -1707,12 +1988,12 @@ EnumMember
 /* ***** Functions ***** */
 
 FunctionBody
-    : BlockStatement {}
-    | BodyStatement {}
-    | InStatement BodyStatement {}
-    | OutStatement BodyStatement {}
-    | InStatement OutStatement BodyStatement {}
-    | OutStatement InStatement BodyStatement {}
+    : BlockStatement { $$ = 0;} /* TODO */
+    | BodyStatement { $$ = 0; } /* TODO */
+    | InStatement BodyStatement { $$ = 0;} /* TODO */
+    | OutStatement BodyStatement { $$ = 0; } /* TODO */
+    | InStatement OutStatement BodyStatement { $$ = 0;} /* TODO */
+    | OutStatement InStatement BodyStatement { $$ = 0;} /* TODO */
     ;
 
 InStatement

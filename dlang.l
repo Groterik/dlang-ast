@@ -1,23 +1,21 @@
 %{
 
-/*
- * Lexer.l file
- * To generate the lexical analyzer run: "flex Lexer.l"
- */
-
 #include "dast.h"
 #include "dlang_grm.hpp"
 
 #include <stdio.h>
 #include <iostream>
 
+#define YY_USER_ACTION yylloc->first_line = yylloc->last_line = yylineno;
+
 %}
 
 %option warn nodefault debug
 %option header-file="dlang_lex.h"
 
-%option reentrant noyywrap never-interactive nounistd
+%option reentrant noyywrap never-interactive nounistd yylineno
 %option bison-bridge
+%option bison-locations
 
 D			[0-9]
 L			[a-zA-Z_]

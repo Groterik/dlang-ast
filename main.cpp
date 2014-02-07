@@ -28,11 +28,11 @@ void getFileContents(std::string& contents, const char *filename)
   throw(errno);
 }
 
-int yyparse(Expression **expression, yyscan_t scanner);
+int yyparse(ModuleNode **expression, yyscan_t scanner);
 
-Expression *getAST(const char *expr)
+ModuleNode *getAST(const char *expr)
 {
-    Expression *expression;
+    ModuleNode *expression;
     yyscan_t scanner;
     YY_BUFFER_STATE state;
 
@@ -57,12 +57,11 @@ Expression *getAST(const char *expr)
 
 int main(void)
 {
-    Expression *e = NULL;
-
     std::string str;
 
     getFileContents(str, "test.d");
 
+    ModuleNode* e;
     e = getAST(str.c_str());
 
     std::cout << e->name() << std::endl;
