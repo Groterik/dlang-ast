@@ -30,6 +30,8 @@ void getFileContents(std::string& contents, const char *filename)
 
 int yyparse(ModuleNode **expression, yyscan_t scanner);
 
+extern int yydebug;
+
 ModuleNode *getAST(const char *expr)
 {
     ModuleNode *expression;
@@ -43,6 +45,7 @@ ModuleNode *getAST(const char *expr)
 
     state = yy_scan_string(expr, scanner);
 
+    yydebug = 0;
     if (yyparse(&expression, scanner)) {
         // error parsing
         return NULL;
@@ -64,7 +67,7 @@ int main(void)
     ModuleNode* e;
     e = getAST(str.c_str());
 
-    std::cout << e->name() << std::endl;
+    std::cout << *e << std::endl;
 
     return 0;
 }

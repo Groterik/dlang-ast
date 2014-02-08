@@ -3,8 +3,12 @@
 #include "dlang_lex.h"
 #include "dast.h"
 
+#undef YYDEBUG
+#define YYDEBUG 1
+
 int yyerror(YYLTYPE* loc, ModuleNode **mainnode, yyscan_t scanner, const char *msg) {
-    std::cout << "Error[" << loc->first_line << ": " << msg << std::endl;
+    std::cout << "Error:" << loc->first_line << ": " << msg << std::endl;
+    exit(1);
 }
 
 %}
@@ -14,9 +18,7 @@ int yyerror(YYLTYPE* loc, ModuleNode **mainnode, yyscan_t scanner, const char *m
 #include "dast.h"
 #include <iostream>
 
-#define TRACE std::clog<<__FILE__<<' '<<__LINE__<<'\n'
-
-#define YYDEBUG 1
+#define TRACE std::clog << "TRACE:\t" << __FILE__ << ' ' << __LINE__ << '\n'
 
 #ifndef YY_TYPEDEF_YY_SCANNER_T
 #define YY_TYPEDEF_YY_SCANNER_T
@@ -30,6 +32,8 @@ typedef void* yyscan_t;
 %parse-param { ModuleNode **mainnode }
 %parse-param { yyscan_t scanner }
 %locations
+
+%glr-parser
 
 %union {
     int ivalue;
@@ -554,29 +558,29 @@ DeclDefs
     ;
 
 DeclDef
-    : AttributeSpecifier {}
+    : AttributeSpecifier { $$ = 0; } /* TODO */
     | ImportDeclaration { $$ = $1; }
-    | EnumDeclaration {}
-    | ClassDeclaration {}
-    | InterfaceDeclaration {}
-    | AggregateDeclaration {}
-    | Declaration {}
-    | Constructor {}
-    | Destructor {}
-    | UnitTest {}
-    | StaticConstructor {}
-    | StaticDestructor {}
-    | SharedStaticConstructor {}
-    | SharedStaticDestructor {}
-/*    | ConditionalDeclaration {}*/ /* TODO */
-/*    | DebugSpecification {}*/ /* TODO */
-  /*  | VersionSpecification {}*/ /* TODO */
-    /*| StaticAssert {}*/
-    | TemplateDeclaration {}
-    | TemplateMixinDeclaration {}
-    | TemplateMixin {}
-    | MixinDeclaration {}
-    | TOK_SEMICOLON {}
+    | EnumDeclaration { $$ = 0; } /* TODO */
+    | ClassDeclaration { $$ = $1; }
+    | InterfaceDeclaration { $$ = 0; } /* TODO */
+    | AggregateDeclaration { $$ = 0; } /* TODO */
+    | Declaration { $$ = 0; } /* TODO */
+    | Constructor { $$ = $1; }
+    | Destructor { $$ = $1; }
+    | UnitTest { $$ = 0; } /* TODO */
+    | StaticConstructor { $$ = 0; } /* TODO */
+    | StaticDestructor { $$ = 0; } /* TODO */
+    | SharedStaticConstructor { $$ = 0; } /* TODO */
+    | SharedStaticDestructor { $$ = 0; } /* TODO */
+/*    | ConditionalDeclaration { $$ = 0; } */ /* TODO */
+/*    | DebugSpecification { $$ = 0; } */ /* TODO */
+  /*  | VersionSpecification { $$ = 0; } */ /* TODO */
+    /*| StaticAssert { $$ = 0; } */
+    | TemplateDeclaration { $$ = 0; } /* TODO */
+    | TemplateMixinDeclaration { $$ = 0; } /* TODO */
+    | TemplateMixin { $$ = 0; } /* TODO */
+    | MixinDeclaration { $$ = 0; } /* TODO */
+    | TOK_SEMICOLON { $$ = 0; } /* TODO */
     ;
 
 
@@ -655,11 +659,11 @@ AliasInitializerList
     ;
 
 AliasInitializer
-    : TOK_IDENTIFIER TOK_ASSIGN Type {}
+    : TOK_IDENTIFIER TOK_ASSIGN Type { $$ = 0; } /* TODO */
     ;
 
 AliasThisDeclaration
-    : TOK_ALIAS TOK_IDENTIFIER TOK_THIS {}
+    : TOK_ALIAS TOK_IDENTIFIER TOK_THIS { $$ = 0; } /* TODO */
     ;
 
 Decl
@@ -694,7 +698,7 @@ BasicType
     | TOK_DOT IdentifierList { $$ = 0; } /* TODO */
     | IdentifierList { $$ = $1; }
     | Typeof { $$ = 0; }  /* TODO */
-    | Typeof TOK_DOT IdentifierList {}  /* TODO */
+    | Typeof TOK_DOT IdentifierList { $$ = 0; } /* TODO */  /* TODO */
     | TOK_CONST TOK_LEFT_PAR Type TOK_RIGHT_PAR { $$ = $3; }
     | TOK_IMMUTABLE TOK_LEFT_PAR Type TOK_RIGHT_PAR { $$ = $3; }
     | TOK_SHARED TOK_LEFT_PAR Type TOK_RIGHT_PAR { $$ = $3; }
@@ -727,18 +731,18 @@ BasicTypeX
     ;
 
 BasicType2opt
-    : {}
-    | BasicType2 {}
+    : { $$ = 0; } /* TODO */
+    | BasicType2 { $$ = 0; } /* TODO */
     ;
 
 BasicType2
-    : TOK_MUL {}
-    | TOK_LEFT_SQUARE TOK_RIGHT_SQUARE {}
-    | TOK_LEFT_SQUARE AssignExpression TOK_RIGHT_SQUARE {}
-    | TOK_LEFT_SQUARE AssignExpression TOK_DOUBLE_DOT AssignExpression TOK_RIGHT_SQUARE {}
-    | TOK_LEFT_SQUARE Type TOK_RIGHT_SQUARE {}
-    | TOK_DELEGATE Parameters MemberFunctionAttributesopt {}
-    | TOK_FUNCTION Parameters FunctionAttributesopt {}
+    : TOK_MUL { $$ = 0; } /* TODO */
+    | TOK_LEFT_SQUARE TOK_RIGHT_SQUARE { $$ = 0; } /* TODO */
+    | TOK_LEFT_SQUARE AssignExpression TOK_RIGHT_SQUARE { $$ = 0; } /* TODO */
+    | TOK_LEFT_SQUARE AssignExpression TOK_DOUBLE_DOT AssignExpression TOK_RIGHT_SQUARE { $$ = 0; } /* TODO */
+    | TOK_LEFT_SQUARE Type TOK_RIGHT_SQUARE { $$ = 0; } /* TODO */
+    | TOK_DELEGATE Parameters MemberFunctionAttributesopt { $$ = 0; } /* TODO */
+    | TOK_FUNCTION Parameters FunctionAttributesopt { $$ = 0; } /* TODO */
     ;
 
 Declarator
@@ -747,25 +751,25 @@ Declarator
     ;
 
 DeclaratorSuffixesopt
-    : {}
-    | DeclaratorSuffixes {}
+    : { $$ = 0; } /* TODO */
+    | DeclaratorSuffixes { $$ = 0; } /* TODO */
     ;
 
 DeclaratorSuffixes
-    : DeclaratorSuffix {}
-    | DeclaratorSuffix DeclaratorSuffixes {}
+    : DeclaratorSuffix { $$ = 0; } /* TODO */
+    | DeclaratorSuffix DeclaratorSuffixes { $$ = 0; } /* TODO */
     ;
 
 Constraintopt
-    : {}
-    | TOK_INT_CONSTANT {}
+    : { $$ = 0; } /* TODO */
+    | TOK_INT_CONSTANT { $$ = 0; } /* TODO */
     ;
 
 DeclaratorSuffix
-    : TOK_LEFT_SQUARE TOK_RIGHT_SQUARE {}
-    | TOK_LEFT_SQUARE AssignExpression TOK_RIGHT_SQUARE {}
-    | TOK_LEFT_SQUARE Type TOK_RIGHT_SQUARE {}
-    | TemplateParametersopt Parameters MemberFunctionAttributesopt Constraintopt {}
+    : TOK_LEFT_SQUARE TOK_RIGHT_SQUARE { $$ = 0; } /* TODO */
+    | TOK_LEFT_SQUARE AssignExpression TOK_RIGHT_SQUARE { $$ = 0; } /* TODO */
+    | TOK_LEFT_SQUARE Type TOK_RIGHT_SQUARE { $$ = 0; } /* TODO */
+    | TemplateParametersopt Parameters MemberFunctionAttributesopt Constraintopt { $$ = 0; } /* TODO */
     ;
 
 IdentifierList
@@ -776,48 +780,48 @@ IdentifierList
     ;
 
 StorageClasses
-    : StorageClass {}
-    | StorageClass StorageClasses {}
+    : StorageClass { $$ = 0; } /* TODO */
+    | StorageClass StorageClasses { $$ = 0; } /* TODO */
     ;
 
 StorageClass
-    : TOK_ABSTRACT {}
-    | TOK_AUTO {}
-    | TypeCtor {}
-    | TOK_DEPRECATED {}
-    | TOK_ENUM {}
-    | TOK_EXTERN {}
-    | TOK_FINAL {}
-    | TOK_NOTHROW {}
-    | TOK_OVERRIDE {}
-    | TOK_PURE {}
-    | TOK__GSHARED {}
-    | Property {}
-    | TOK_SCOPE {}
-    | TOK_STATIC {}
-    | TOK_SYNCHRONIZED {}
+    : TOK_ABSTRACT { $$ = 0; } /* TODO */
+    | TOK_AUTO { $$ = 0; } /* TODO */
+    | TypeCtor { $$ = 0; } /* TODO */
+    | TOK_DEPRECATED { $$ = 0; } /* TODO */
+    | TOK_ENUM { $$ = 0; } /* TODO */
+    | TOK_EXTERN { $$ = 0; } /* TODO */
+    | TOK_FINAL { $$ = 0; } /* TODO */
+    | TOK_NOTHROW { $$ = 0; } /* TODO */
+    | TOK_OVERRIDE { $$ = 0; } /* TODO */
+    | TOK_PURE { $$ = 0; } /* TODO */
+    | TOK__GSHARED { $$ = 0; } /* TODO */
+    | Property { $$ = 0; } /* TODO */
+    | TOK_SCOPE { $$ = 0; } /* TODO */
+    | TOK_STATIC { $$ = 0; } /* TODO */
+    | TOK_SYNCHRONIZED { $$ = 0; } /* TODO */
     ;
 
 TypeCtors
-    : TypeCtor {}
-    | TypeCtor TypeCtors {}
+    : TypeCtor { $$ = 0; } /* TODO */
+    | TypeCtor TypeCtors { $$ = 0; } /* TODO */
     ;
 
 TypeCtorsopt
-    : {}
-    | TypeCtors {}
+    : { $$ = 0; } /* TODO */
+    | TypeCtors { $$ = 0; } /* TODO */
     ;
 
 TypeCtor
-    : TOK_CONST {}
-    | TOK_IMMUTABLE {}
-    | TOK_INOUT {}
-    | TOK_SHARED {}
+    : TOK_CONST { $$ = 0; } /* TODO */
+    | TOK_IMMUTABLE { $$ = 0; } /* TODO */
+    | TOK_INOUT { $$ = 0; } /* TODO */
+    | TOK_SHARED { $$ = 0; } /* TODO */
     ;
 
 Typeopt
-    : {}
-    | Type {}
+    : { $$ = 0; } /* TODO */
+    | Type { $$ = 0; } /* TODO */
     ;
 
 Type
@@ -826,8 +830,8 @@ Type
     ;
 
 Declarator2
-    : BasicType2opt DeclaratorSuffixesopt {}
-    | BasicType2opt TOK_LEFT_PAR Declarator2 TOK_RIGHT_PAR DeclaratorSuffixesopt {}
+    : BasicType2opt DeclaratorSuffixesopt { $$ = 0; } /* TODO */
+    | BasicType2opt TOK_LEFT_PAR Declarator2 TOK_RIGHT_PAR DeclaratorSuffixesopt { $$ = 0; } /* TODO */
     ;
 
 Parameters
@@ -850,825 +854,825 @@ Parameter
     ;
 
 InOutopt
-    : {}
-    | InOut {}
+    : { $$ = 0; } /* TODO */
+    | InOut { $$ = 0; } /* TODO */
     ;
 
 InOut
-    : InOutX {}
-    | InOut InOutX {}
+    : InOutX { $$ = 0; } /* TODO */
+    | InOut InOutX { $$ = 0; } /* TODO */
     ;
 
 InOutX
-    : TOK_AUTO {}
-    | TypeCtor {}
-    | TOK_FINAL {}
-    | TOK_IN {}
-    | TOK_LAZY {}
-    | TOK_OUT {}
-    | TOK_REF {}
-    | TOK_SCOPE {}
+    : TOK_AUTO { $$ = 0; } /* TODO */
+    | TypeCtor { $$ = 0; } /* TODO */
+    | TOK_FINAL { $$ = 0; } /* TODO */
+    | TOK_IN { $$ = 0; } /* TODO */
+    | TOK_LAZY { $$ = 0; } /* TODO */
+    | TOK_OUT { $$ = 0; } /* TODO */
+    | TOK_REF { $$ = 0; } /* TODO */
+    | TOK_SCOPE { $$ = 0; } /* TODO */
     ;
 
 FunctionAttributesopt
-    : {}
-    | FunctionAttributes {}
+    : { $$ = 0; } /* TODO */
+    | FunctionAttributes { $$ = 0; } /* TODO */
     ;
 
 FunctionAttributes
-    : FunctionAttribute {}
-    | FunctionAttribute FunctionAttributes {}
+    : FunctionAttribute { $$ = 0; } /* TODO */
+    | FunctionAttribute FunctionAttributes { $$ = 0; } /* TODO */
     ;
 
 FunctionAttribute
-    : TOK_NOTHROW {}
-    | TOK_PURE {}
-    | Property {}
+    : TOK_NOTHROW { $$ = 0; } /* TODO */
+    | TOK_PURE { $$ = 0; } /* TODO */
+    | Property { $$ = 0; } /* TODO */
     ;
 
 MemberFunctionAttributesopt
-    : {}
-    | MemberFunctionAttributes {}
+    : { $$ = 0; } /* TODO */
+    | MemberFunctionAttributes { $$ = 0; } /* TODO */
     ;
 
 MemberFunctionAttributes
-    : MemberFunctionAttribute {}
-    | MemberFunctionAttribute MemberFunctionAttributes {}
+    : MemberFunctionAttribute { $$ = 0; } /* TODO */
+    | MemberFunctionAttribute MemberFunctionAttributes { $$ = 0; } /* TODO */
     ;
 
 MemberFunctionAttribute
-    : TOK_CONST {}
-    | TOK_IMMUTABLE {}
-    | TOK_INOUT {}
-    | TOK_SHARED {}
-    | FunctionAttribute {}
+    : TOK_CONST { $$ = 0; } /* TODO */
+    | TOK_IMMUTABLE { $$ = 0; } /* TODO */
+    | TOK_INOUT { $$ = 0; } /* TODO */
+    | TOK_SHARED { $$ = 0; } /* TODO */
+    | FunctionAttribute { $$ = 0; } /* TODO */
     ;
 
 DefaultInitializerExpression
-    : AssignExpression {}
-    | TOK__FILE {}
-    | TOK__MODULE {}
-    | TOK__LINE {}
-    | TOK__FUNCTION {}
-    | TOK__PRETTY_FUNCTION {}
+    : AssignExpression { $$ = 0; } /* TODO */
+    | TOK__FILE { $$ = 0; } /* TODO */
+    | TOK__MODULE { $$ = 0; } /* TODO */
+    | TOK__LINE { $$ = 0; } /* TODO */
+    | TOK__FUNCTION { $$ = 0; } /* TODO */
+    | TOK__PRETTY_FUNCTION { $$ = 0; } /* TODO */
     ;
 
 Initializer
-    : VoidInitializer {}
-    | NonVoidInitializer {}
+    : VoidInitializer { $$ = 0; } /* TODO */
+    | NonVoidInitializer { $$ = 0; } /* TODO */
     ;
 
 NonVoidInitializer
-    : AssignExpression {}
-    | ArrayInitializer {}
-    | StructInitializer {}
+    : AssignExpression { $$ = 0; } /* TODO */
+    | ArrayInitializer { $$ = 0; } /* TODO */
+    | StructInitializer { $$ = 0; } /* TODO */
     ;
 
 ArrayInitializer
-    : TOK_LEFT_SQUARE TOK_RIGHT_SQUARE {}
-    | TOK_LEFT_SQUARE ArrayMemberInitializations TOK_RIGHT_SQUARE {}
+    : TOK_LEFT_SQUARE TOK_RIGHT_SQUARE { $$ = 0; } /* TODO */
+    | TOK_LEFT_SQUARE ArrayMemberInitializations TOK_RIGHT_SQUARE { $$ = 0; } /* TODO */
     ;
 
 ArrayMemberInitializations
-    : ArrayMemberInitialization {}
-    | ArrayMemberInitialization TOK_COMMA {}
-    | ArrayMemberInitialization TOK_COMMA ArrayMemberInitializations {}
+    : ArrayMemberInitialization { $$ = 0; } /* TODO */
+    | ArrayMemberInitialization TOK_COMMA { $$ = 0; } /* TODO */
+    | ArrayMemberInitialization TOK_COMMA ArrayMemberInitializations { $$ = 0; } /* TODO */
     ;
 
 ArrayMemberInitialization
-    : NonVoidInitializer {}
-    | AssignExpression TOK_COLON NonVoidInitializer {}
+    : NonVoidInitializer { $$ = 0; } /* TODO */
+    | AssignExpression TOK_COLON NonVoidInitializer { $$ = 0; } /* TODO */
     ;
 
 StructInitializer
-    : TOK_LEFT_BRACE TOK_RIGHT_BRACE {}
-    | TOK_LEFT_BRACE StructMemberInitializers TOK_RIGHT_BRACE {}
+    : TOK_LEFT_BRACE TOK_RIGHT_BRACE { $$ = 0; } /* TODO */
+    | TOK_LEFT_BRACE StructMemberInitializers TOK_RIGHT_BRACE { $$ = 0; } /* TODO */
     ;
 
 StructMemberInitializers
-    : StructMemberInitializer {}
-    | StructMemberInitializer TOK_COMMA {}
-    | StructMemberInitializer TOK_COMMA StructMemberInitializers {}
+    : StructMemberInitializer { $$ = 0; } /* TODO */
+    | StructMemberInitializer TOK_COMMA { $$ = 0; } /* TODO */
+    | StructMemberInitializer TOK_COMMA StructMemberInitializers { $$ = 0; } /* TODO */
     ;
 
 StructMemberInitializer
-    : NonVoidInitializer {}
-    | TOK_IDENTIFIER TOK_COLON NonVoidInitializer {}
+    : NonVoidInitializer { $$ = 0; } /* TODO */
+    | TOK_IDENTIFIER TOK_COLON NonVoidInitializer { $$ = 0; } /* TODO */
     ;
 
 AutoDeclaration
-    : StorageClasses AutoDeclarationX TOK_SEMICOLON {}
+    : StorageClasses AutoDeclarationX TOK_SEMICOLON { $$ = 0; } /* TODO */
     ;
 
 AutoDeclarationX
-    : TOK_IDENTIFIER TOK_ASSIGN Initializer {}
-    | AutoDeclarationX TOK_COMMA TOK_IDENTIFIER TOK_ASSIGN Initializer {}
+    : TOK_IDENTIFIER TOK_ASSIGN Initializer { $$ = 0; } /* TODO */
+    | AutoDeclarationX TOK_COMMA TOK_IDENTIFIER TOK_ASSIGN Initializer { $$ = 0; } /* TODO */
     ;
 
 Typeof
-    : TOK_TYPEOF TOK_LEFT_PAR Expression TOK_RIGHT_PAR {}
-    | TOK_TYPEOF TOK_LEFT_PAR TOK_RETURN TOK_RIGHT_PAR {}
+    : TOK_TYPEOF TOK_LEFT_PAR Expression TOK_RIGHT_PAR { $$ = 0; } /* TODO */
+    | TOK_TYPEOF TOK_LEFT_PAR TOK_RETURN TOK_RIGHT_PAR { $$ = 0; } /* TODO */
     ;
 
 VoidInitializer
-    : TOK_VOID {}
+    : TOK_VOID { $$ = 0; } /* TODO */
     ;
 
 
 /* ***** Attributes ***** */
 
 AttributeSpecifier
-    : Attribute TOK_COLON {}
-    | Attribute DeclarationBlock {}
+    : Attribute TOK_COLON { $$ = 0; } /* TODO */
+    | Attribute DeclarationBlock { $$ = 0; } /* TODO */
     ;
 
 Attribute
-    : LinkageAttribute {}
-    | AlignAttribute {}
-    | Pragma {}
-    | DeprecatedAttribute {}
-    | ProtectionAttribute {}
-    | TOK_STATIC {}
-    | TOK_EXTERN {}
-    | TOK_FINAL {}
-    | TOK_SYNCHRONIZED {}
-    | TOK_OVERRIDE {}
-    | TOK_ABSTRACT {}
-    | TOK_AUTO {}
-    | TOK_SCOPE {}
-    | TOK_CONST {}
-    | TOK_IMMUTABLE {}
-    | TOK_INOUT {}
-    | TOK_SHARED {}
-    | TOK__GSHARED {}
-    | TOK_ATDISABLE {}
-    | TOK_ATPROPERTY {}
-    | Property {}
+    : LinkageAttribute { $$ = 0; } /* TODO */
+    | AlignAttribute { $$ = 0; } /* TODO */
+    | Pragma { $$ = 0; } /* TODO */
+    | DeprecatedAttribute { $$ = 0; } /* TODO */
+    | ProtectionAttribute { $$ = 0; } /* TODO */
+    | TOK_STATIC { $$ = 0; } /* TODO */
+    | TOK_EXTERN { $$ = 0; } /* TODO */
+    | TOK_FINAL { $$ = 0; } /* TODO */
+    | TOK_SYNCHRONIZED { $$ = 0; } /* TODO */
+    | TOK_OVERRIDE { $$ = 0; } /* TODO */
+    | TOK_ABSTRACT { $$ = 0; } /* TODO */
+    | TOK_AUTO { $$ = 0; } /* TODO */
+    | TOK_SCOPE { $$ = 0; } /* TODO */
+    | TOK_CONST { $$ = 0; } /* TODO */
+    | TOK_IMMUTABLE { $$ = 0; } /* TODO */
+    | TOK_INOUT { $$ = 0; } /* TODO */
+    | TOK_SHARED { $$ = 0; } /* TODO */
+    | TOK__GSHARED { $$ = 0; } /* TODO */
+    | TOK_ATDISABLE { $$ = 0; } /* TODO */
+    | TOK_ATPROPERTY { $$ = 0; } /* TODO */
+    | Property { $$ = 0; } /* TODO */
     ;
 
 Property
-    : TOK_AT PropertyIdentifier {}
-    | UserDefinedAttribute {}
+    : TOK_AT PropertyIdentifier { $$ = 0; } /* TODO */
+    | UserDefinedAttribute { $$ = 0; } /* TODO */
     ;
 
 PropertyIdentifier
-    : TOK_PROPERTY {}
-    | TOK_SAFE {}
-    | TOK_TRUSTED {}
-    | TOK_SYSTEM {}
-    | TOK_DISABLE {}
+    : TOK_PROPERTY { $$ = 0; } /* TODO */
+    | TOK_SAFE { $$ = 0; } /* TODO */
+    | TOK_TRUSTED { $$ = 0; } /* TODO */
+    | TOK_SYSTEM { $$ = 0; } /* TODO */
+    | TOK_DISABLE { $$ = 0; } /* TODO */
     ;
 
 DeclarationBlock
-    : DeclDef {}
-    |TOK_LEFT_BRACE DeclDefsopt TOK_RIGHT_BRACE {}
+    : DeclDef { $$ = 0; } /* TODO */
+    |TOK_LEFT_BRACE DeclDefsopt TOK_RIGHT_BRACE { $$ = 0; } /* TODO */
     ;
 
 LinkageAttribute
-    : TOK_EXTERN TOK_LEFT_PAR LinkageType TOK_RIGHT_PAR {}
+    : TOK_EXTERN TOK_LEFT_PAR LinkageType TOK_RIGHT_PAR { $$ = 0; } /* TODO */
     ;
 
 LinkageType
-    : TOK_LINK_C {}
-    | TOK_LINK_CPP {}
-    | TOK_LINK_D {}
-    | TOK_LINK_WINDOWS {}
-    | TOK_LINK_PASCAL {}
-    | TOK_LINK_SYSTEM {}
+    : TOK_LINK_C { $$ = 0; } /* TODO */
+    | TOK_LINK_CPP { $$ = 0; } /* TODO */
+    | TOK_LINK_D { $$ = 0; } /* TODO */
+    | TOK_LINK_WINDOWS { $$ = 0; } /* TODO */
+    | TOK_LINK_PASCAL { $$ = 0; } /* TODO */
+    | TOK_LINK_SYSTEM { $$ = 0; } /* TODO */
     ;
 
 AlignAttribute
-    : TOK_ALIGN {}
-    | TOK_ALIGN TOK_LEFT_PAR TOK_INT_CONSTANT TOK_RIGHT_PAR {}
+    : TOK_ALIGN { $$ = 0; } /* TODO */
+    | TOK_ALIGN TOK_LEFT_PAR TOK_INT_CONSTANT TOK_RIGHT_PAR { $$ = 0; } /* TODO */
     ;
 
 DeprecatedAttribute
-    : TOK_DEPRECATED {}
-    | TOK_DEPRECATED TOK_LEFT_PAR TOK_STRING_LITERAL TOK_RIGHT_PAR {}
+    : TOK_DEPRECATED { $$ = 0; } /* TODO */
+    | TOK_DEPRECATED TOK_LEFT_PAR TOK_STRING_LITERAL TOK_RIGHT_PAR { $$ = 0; } /* TODO */
     ;
 
 ProtectionAttribute
-    : TOK_PRIVATE {}
-    | TOK_PACKAGE {}
-    | TOK_PROTECTED {}
-    | TOK_PUBLIC {}
-    | TOK_EXPORT {}
+    : TOK_PRIVATE { $$ = 0; } /* TODO */
+    | TOK_PACKAGE { $$ = 0; } /* TODO */
+    | TOK_PROTECTED { $$ = 0; } /* TODO */
+    | TOK_PUBLIC { $$ = 0; } /* TODO */
+    | TOK_EXPORT { $$ = 0; } /* TODO */
     ;
 
 UserDefinedAttribute
-    : TOK_AT TOK_LEFT_PAR ArgumentList TOK_RIGHT_PAR {}
-    | TOK_AT TOK_IDENTIFIER {}
-    | TOK_AT TOK_IDENTIFIER TOK_LEFT_PAR ArgumentListopt TOK_RIGHT_PAR {}
+    : TOK_AT TOK_LEFT_PAR ArgumentList TOK_RIGHT_PAR { $$ = 0; } /* TODO */
+    | TOK_AT TOK_IDENTIFIER { $$ = 0; } /* TODO */
+    | TOK_AT TOK_IDENTIFIER TOK_LEFT_PAR ArgumentListopt TOK_RIGHT_PAR { $$ = 0; } /* TODO */
     ;
 
 /* ***** Pragmas ***** */
 
 Pragma
-    : TOK_PRAGMA TOK_LEFT_PAR TOK_IDENTIFIER TOK_RIGHT_PAR {}
-    | TOK_PRAGMA TOK_LEFT_PAR TOK_IDENTIFIER TOK_COMMA ArgumentList TOK_RIGHT_PAR {}
+    : TOK_PRAGMA TOK_LEFT_PAR TOK_IDENTIFIER TOK_RIGHT_PAR { $$ = 0; } /* TODO */
+    | TOK_PRAGMA TOK_LEFT_PAR TOK_IDENTIFIER TOK_COMMA ArgumentList TOK_RIGHT_PAR { $$ = 0; } /* TODO */
     ;
 
 /* ***** Expressions ***** */
 
 Expressionopt
-    : {}
-    | Expression {}
+    : { $$ = 0; } /* TODO */
+    | Expression { $$ = 0; } /* TODO */
     ;
 
 Expression
-    : CommaExpression {}
+    : CommaExpression { $$ = 0; } /* TODO */
     ;
 
 CommaExpression
-    : AssignExpression {}
-    | AssignExpression TOK_COMMA CommaExpression {}
+    : AssignExpression { $$ = 0; } /* TODO */
+    | AssignExpression TOK_COMMA CommaExpression { $$ = 0; } /* TODO */
     ;
 
 
 AssignExpression
-    : ConditionalExpression {}
-    | ConditionalExpression TOK_ASSIGN AssignExpression {}
-    | ConditionalExpression TOK_PLUS_ASSIGN AssignExpression {}
-    | ConditionalExpression TOK_MINUS_ASSIGN AssignExpression {}
-    | ConditionalExpression TOK_MUL_ASSIGN AssignExpression {}
-    | ConditionalExpression TOK_DIV_ASSIGN AssignExpression {}
-    | ConditionalExpression TOK_MOD_ASSIGN AssignExpression {}
-    | ConditionalExpression TOK_AND_BIN_ASSIGN AssignExpression {}
-    | ConditionalExpression TOK_OR_BIN_ASSIGN AssignExpression {}
-    | ConditionalExpression TOK_XOR_ASSIGN AssignExpression {}
-    | ConditionalExpression TOK_TILDA_ASSIGN AssignExpression {}
-    | ConditionalExpression TOK_LEFT_ASSIGN AssignExpression {}
-    | ConditionalExpression TOK_RIGHT_ASSIGN AssignExpression {}
-    | ConditionalExpression TOK_PINE_ASSIGN AssignExpression {}
-    | ConditionalExpression TOK_POW_ASSIGN AssignExpression {}
+    : ConditionalExpression { $$ = 0; } /* TODO */
+    | ConditionalExpression TOK_ASSIGN AssignExpression { $$ = 0; } /* TODO */
+    | ConditionalExpression TOK_PLUS_ASSIGN AssignExpression { $$ = 0; } /* TODO */
+    | ConditionalExpression TOK_MINUS_ASSIGN AssignExpression { $$ = 0; } /* TODO */
+    | ConditionalExpression TOK_MUL_ASSIGN AssignExpression { $$ = 0; } /* TODO */
+    | ConditionalExpression TOK_DIV_ASSIGN AssignExpression { $$ = 0; } /* TODO */
+    | ConditionalExpression TOK_MOD_ASSIGN AssignExpression { $$ = 0; } /* TODO */
+    | ConditionalExpression TOK_AND_BIN_ASSIGN AssignExpression { $$ = 0; } /* TODO */
+    | ConditionalExpression TOK_OR_BIN_ASSIGN AssignExpression { $$ = 0; } /* TODO */
+    | ConditionalExpression TOK_XOR_ASSIGN AssignExpression { $$ = 0; } /* TODO */
+    | ConditionalExpression TOK_TILDA_ASSIGN AssignExpression { $$ = 0; } /* TODO */
+    | ConditionalExpression TOK_LEFT_ASSIGN AssignExpression { $$ = 0; } /* TODO */
+    | ConditionalExpression TOK_RIGHT_ASSIGN AssignExpression { $$ = 0; } /* TODO */
+    | ConditionalExpression TOK_PINE_ASSIGN AssignExpression { $$ = 0; } /* TODO */
+    | ConditionalExpression TOK_POW_ASSIGN AssignExpression { $$ = 0; } /* TODO */
     ;
 
 ConditionalExpression
-    : OrOrExpression {}
-    | OrOrExpression TOK_QUESTION Expression TOK_COLON ConditionalExpression {}
+    : OrOrExpression { $$ = 0; } /* TODO */
+    | OrOrExpression TOK_QUESTION Expression TOK_COLON ConditionalExpression { $$ = 0; } /* TODO */
     ;
 
 OrOrExpression
-    : AndAndExpression {}
-    | OrOrExpression TOK_OR AndAndExpression {}
+    : AndAndExpression { $$ = 0; } /* TODO */
+    | OrOrExpression TOK_OR AndAndExpression { $$ = 0; } /* TODO */
     ;
 
 AndAndExpression
-    : OrExpression {}
-    | AndAndExpression TOK_AND OrExpression {}
-    | CmpExpression {}
-    | AndAndExpression TOK_AND CmpExpression {}
+    : OrExpression { $$ = 0; } /* TODO */
+    | AndAndExpression TOK_AND OrExpression { $$ = 0; } /* TODO */
+    | CmpExpression { $$ = 0; } /* TODO */
+    | AndAndExpression TOK_AND CmpExpression { $$ = 0; } /* TODO */
     ;
 
 OrExpression
-    : XorExpression {}
-    | OrExpression TOK_VERTICAL XorExpression {}
+    : XorExpression { $$ = 0; } /* TODO */
+    | OrExpression TOK_VERTICAL XorExpression { $$ = 0; } /* TODO */
     ;
 
 XorExpression
-    : AndExpression {}
-    | XorExpression TOK_UP_ARROW AndExpression {}
+    : AndExpression { $$ = 0; } /* TODO */
+    | XorExpression TOK_UP_ARROW AndExpression { $$ = 0; } /* TODO */
     ;
 
 AndExpression
-    : ShiftExpression {}
-    | AndExpression TOK_AMPERSAND ShiftExpression {}
+    : ShiftExpression { $$ = 0; } /* TODO */
+    | AndExpression TOK_AMPERSAND ShiftExpression { $$ = 0; } /* TODO */
     ;
 
 CmpExpression
-    : ShiftExpression {}
-    | EqualExpression {}
-    | IdentityExpression {}
-    | RelExpression {}
-    | InExpression {}
+    : ShiftExpression { $$ = 0; } /* TODO */
+    | EqualExpression { $$ = 0; } /* TODO */
+    | IdentityExpression { $$ = 0; } /* TODO */
+    | RelExpression { $$ = 0; } /* TODO */
+    | InExpression { $$ = 0; } /* TODO */
     ;
 
 EqualExpression
-    : ShiftExpression TOK_EQ ShiftExpression {}
-    | ShiftExpression TOK_NE ShiftExpression {}
+    : ShiftExpression TOK_EQ ShiftExpression { $$ = 0; } /* TODO */
+    | ShiftExpression TOK_NE ShiftExpression { $$ = 0; } /* TODO */
     ;
 
 IdentityExpression
-    : ShiftExpression TOK_IS ShiftExpression {}
-    | ShiftExpression TOK_NOTIS ShiftExpression {}
+    : ShiftExpression TOK_IS ShiftExpression { $$ = 0; } /* TODO */
+    | ShiftExpression TOK_NOTIS ShiftExpression { $$ = 0; } /* TODO */
     ;
 
 RelExpression
-    : ShiftExpression TOK_LSS ShiftExpression {}
-    | ShiftExpression TOK_LE ShiftExpression {}
-    | ShiftExpression TOK_GRT ShiftExpression {}
-    | ShiftExpression TOK_GE ShiftExpression {}
-    | ShiftExpression TOK_UNORDERED ShiftExpression {}
-    | ShiftExpression TOK_UNORDERED_E ShiftExpression {}
-    | ShiftExpression TOK_LG ShiftExpression {}
-    | ShiftExpression TOK_LGE ShiftExpression {}
-    | ShiftExpression TOK_UNORDERED_LE ShiftExpression {}
-    | ShiftExpression TOK_UNORDERED_L ShiftExpression {}
-    | ShiftExpression TOK_UNORDERED_GE ShiftExpression {}
-    | ShiftExpression TOK_UNORDERED_G ShiftExpression {}
+    : ShiftExpression TOK_LSS ShiftExpression { $$ = 0; } /* TODO */
+    | ShiftExpression TOK_LE ShiftExpression { $$ = 0; } /* TODO */
+    | ShiftExpression TOK_GRT ShiftExpression { $$ = 0; } /* TODO */
+    | ShiftExpression TOK_GE ShiftExpression { $$ = 0; } /* TODO */
+    | ShiftExpression TOK_UNORDERED ShiftExpression { $$ = 0; } /* TODO */
+    | ShiftExpression TOK_UNORDERED_E ShiftExpression { $$ = 0; } /* TODO */
+    | ShiftExpression TOK_LG ShiftExpression { $$ = 0; } /* TODO */
+    | ShiftExpression TOK_LGE ShiftExpression { $$ = 0; } /* TODO */
+    | ShiftExpression TOK_UNORDERED_LE ShiftExpression { $$ = 0; } /* TODO */
+    | ShiftExpression TOK_UNORDERED_L ShiftExpression { $$ = 0; } /* TODO */
+    | ShiftExpression TOK_UNORDERED_GE ShiftExpression { $$ = 0; } /* TODO */
+    | ShiftExpression TOK_UNORDERED_G ShiftExpression { $$ = 0; } /* TODO */
     ;
 
 InExpression
-    : ShiftExpression TOK_IN ShiftExpression {}
-    | ShiftExpression TOK_NOTIN ShiftExpression {}
+    : ShiftExpression TOK_IN ShiftExpression { $$ = 0; } /* TODO */
+    | ShiftExpression TOK_NOTIN ShiftExpression { $$ = 0; } /* TODO */
     ;
 
 ShiftExpression
-    : AddExpression {}
-    | ShiftExpression TOK_LEFT AddExpression {}
-    | ShiftExpression TOK_RIGHT AddExpression {}
-    | ShiftExpression TOK_PINE AddExpression {}
+    : AddExpression { $$ = 0; } /* TODO */
+    | ShiftExpression TOK_LEFT AddExpression { $$ = 0; } /* TODO */
+    | ShiftExpression TOK_RIGHT AddExpression { $$ = 0; } /* TODO */
+    | ShiftExpression TOK_PINE AddExpression { $$ = 0; } /* TODO */
     ;
 
 AddExpression
-    : MulExpression {}
-    | AddExpression TOK_PLUS MulExpression {}
-    | AddExpression TOK_MINUS MulExpression {}
-    | CatExpression {}
+    : MulExpression { $$ = 0; } /* TODO */
+    | AddExpression TOK_PLUS MulExpression { $$ = 0; } /* TODO */
+    | AddExpression TOK_MINUS MulExpression { $$ = 0; } /* TODO */
+    | CatExpression { $$ = 0; } /* TODO */
     ;
 
 CatExpression
-    : AddExpression TOK_TILDA MulExpression {}
+    : AddExpression TOK_TILDA MulExpression { $$ = 0; } /* TODO */
     ;
 
 MulExpression
-    : UnaryExpression {}
-    | MulExpression TOK_MUL UnaryExpression {}
-    | MulExpression TOK_DIV UnaryExpression {}
-    | MulExpression TOK_MOD UnaryExpression {}
+    : UnaryExpression { $$ = 0; } /* TODO */
+    | MulExpression TOK_MUL UnaryExpression { $$ = 0; } /* TODO */
+    | MulExpression TOK_DIV UnaryExpression { $$ = 0; } /* TODO */
+    | MulExpression TOK_MOD UnaryExpression { $$ = 0; } /* TODO */
     ;
 
 UnaryExpression
-    : TOK_AMPERSAND UnaryExpression {}
-    | TOK_INC UnaryExpression {}
-    | TOK_DEC UnaryExpression {}
-    | TOK_MUL UnaryExpression {}
-    | TOK_DIV UnaryExpression {}
-    | TOK_PLUS UnaryExpression {}
-    | TOK_EXCLAMATION UnaryExpression {}
-    | ComplementExpression {}
-    | TOK_LEFT_PAR Type TOK_RIGHT_PAR TOK_DOT Identifier {}
-    | TOK_LEFT_PAR Type TOK_RIGHT_PAR TOK_DOT TemplateInstance {}
-    | DeleteExpression {}
-    | CastExpression {}
-    | PowExpression {}
+    : TOK_AMPERSAND UnaryExpression { $$ = 0; } /* TODO */
+    | TOK_INC UnaryExpression { $$ = 0; } /* TODO */
+    | TOK_DEC UnaryExpression { $$ = 0; } /* TODO */
+    | TOK_MUL UnaryExpression { $$ = 0; } /* TODO */
+    | TOK_DIV UnaryExpression { $$ = 0; } /* TODO */
+    | TOK_PLUS UnaryExpression { $$ = 0; } /* TODO */
+    | TOK_EXCLAMATION UnaryExpression { $$ = 0; } /* TODO */
+    | ComplementExpression { $$ = 0; } /* TODO */
+    | TOK_LEFT_PAR Type TOK_RIGHT_PAR TOK_DOT Identifier { $$ = 0; } /* TODO */
+    | TOK_LEFT_PAR Type TOK_RIGHT_PAR TOK_DOT TemplateInstance { $$ = 0; } /* TODO */
+    | DeleteExpression { $$ = 0; } /* TODO */
+    | CastExpression { $$ = 0; } /* TODO */
+    | PowExpression { $$ = 0; } /* TODO */
     ;
 
 ComplementExpression
-    : TOK_TILDA UnaryExpression {}
+    : TOK_TILDA UnaryExpression { $$ = 0; } /* TODO */
     ;
 
 NewExpression
-    : TOK_NEW AllocatorArgumentsopt Type {}
-    | NewExpressionWithArgs {}
+    : TOK_NEW AllocatorArgumentsopt Type { $$ = 0; } /* TODO */
+    | NewExpressionWithArgs { $$ = 0; } /* TODO */
     ;
 
 NewExpressionWithArgs
-    : TOK_NEW AllocatorArgumentsopt Type TOK_LEFT_SQUARE AssignExpression TOK_RIGHT_SQUARE {}
-    | TOK_NEW AllocatorArgumentsopt Type TOK_LEFT_PAR ArgumentList TOK_RIGHT_PAR {}
-    | NewAnonClassExpression {}
+    : TOK_NEW AllocatorArgumentsopt Type TOK_LEFT_SQUARE AssignExpression TOK_RIGHT_SQUARE { $$ = 0; } /* TODO */
+    | TOK_NEW AllocatorArgumentsopt Type TOK_LEFT_PAR ArgumentList TOK_RIGHT_PAR { $$ = 0; } /* TODO */
+    | NewAnonClassExpression { $$ = 0; } /* TODO */
     ;
 
 AllocatorArgumentsopt
-    : {}
-    | AllocatorArguments {}
+    : { $$ = 0; } /* TODO */
+    | AllocatorArguments { $$ = 0; } /* TODO */
     ;
 
 
 AllocatorArguments
-    : TOK_LEFT_PAR ArgumentListopt TOK_RIGHT_PAR {}
+    : TOK_LEFT_PAR ArgumentListopt TOK_RIGHT_PAR { $$ = 0; } /* TODO */
     ;
 
 ArgumentListopt
-    : {}
-    | ArgumentList {}
+    : { $$ = 0; } /* TODO */
+    | ArgumentList { $$ = 0; } /* TODO */
     ;
 
 ArgumentList
-    : AssignExpression {}
-    | AssignExpression TOK_COMMA {}
-    | AssignExpression TOK_COMMA ArgumentList {}
+    : AssignExpression { $$ = 0; } /* TODO */
+    | AssignExpression TOK_COMMA { $$ = 0; } /* TODO */
+    | AssignExpression TOK_COMMA ArgumentList { $$ = 0; } /* TODO */
     ;
 
 DeleteExpression
-    : TOK_DELETE UnaryExpression {}
+    : TOK_DELETE UnaryExpression { $$ = 0; } /* TODO */
     ;
 
 CastExpression
-    : TOK_CAST TOK_LEFT_PAR Type TOK_RIGHT_PAR UnaryExpression {}
-    | TOK_CAST TOK_LEFT_PAR CastQual TOK_RIGHT_PAR UnaryExpression {}
-    | TOK_CAST TOK_LEFT_PAR TOK_RIGHT_PAR UnaryExpression {}
+    : TOK_CAST TOK_LEFT_PAR Type TOK_RIGHT_PAR UnaryExpression { $$ = 0; } /* TODO */
+    | TOK_CAST TOK_LEFT_PAR CastQual TOK_RIGHT_PAR UnaryExpression { $$ = 0; } /* TODO */
+    | TOK_CAST TOK_LEFT_PAR TOK_RIGHT_PAR UnaryExpression { $$ = 0; } /* TODO */
     ;
 
 CastQual
-    : TOK_CONST {}
-    | TOK_CONST TOK_SHARED {}
-    | TOK_SHARED TOK_CONST {}
-    | TOK_INOUT {}
-    | TOK_INOUT TOK_SHARED {}
-    | TOK_SHARED TOK_INOUT {}
-    | TOK_IMMUTABLE {}
-    | TOK_SHARED {}
+    : TOK_CONST { $$ = 0; } /* TODO */
+    | TOK_CONST TOK_SHARED { $$ = 0; } /* TODO */
+    | TOK_SHARED TOK_CONST { $$ = 0; } /* TODO */
+    | TOK_INOUT { $$ = 0; } /* TODO */
+    | TOK_INOUT TOK_SHARED { $$ = 0; } /* TODO */
+    | TOK_SHARED TOK_INOUT { $$ = 0; } /* TODO */
+    | TOK_IMMUTABLE { $$ = 0; } /* TODO */
+    | TOK_SHARED { $$ = 0; } /* TODO */
     ;
 
 PowExpression
-    : PostfixExpression {}
-    | PostfixExpression TOK_POW UnaryExpression {}
+    : PostfixExpression { $$ = 0; } /* TODO */
+    | PostfixExpression TOK_POW UnaryExpression { $$ = 0; } /* TODO */
     ;
 
 PostfixExpression
-    : PrimaryExpression {}
-    | PostfixExpression TOK_DOT TOK_IDENTIFIER {}
-    | PostfixExpression TOK_DOT TemplateInstance {}
-    | PostfixExpression TOK_DOT NewExpression {}
-    | PostfixExpression TOK_INC {}
-    | PostfixExpression TOK_DEC {}
-    | PostfixExpression TOK_LEFT_PAR TOK_RIGHT_PAR {}
-    | PostfixExpression TOK_LEFT_PAR ArgumentList TOK_RIGHT_PAR {}
-    | TypeCtorsopt BasicType TOK_LEFT_PAR TOK_RIGHT_PAR {}
-    | TypeCtorsopt BasicType TOK_LEFT_PAR ArgumentList TOK_RIGHT_PAR {}
-    | IndexExpression {}
-    | SliceExpression {}
+    : PrimaryExpression { $$ = 0; } /* TODO */
+    | PostfixExpression TOK_DOT TOK_IDENTIFIER { $$ = 0; } /* TODO */
+    | PostfixExpression TOK_DOT TemplateInstance { $$ = 0; } /* TODO */
+    | PostfixExpression TOK_DOT NewExpression { $$ = 0; } /* TODO */
+    | PostfixExpression TOK_INC { $$ = 0; } /* TODO */
+    | PostfixExpression TOK_DEC { $$ = 0; } /* TODO */
+    | PostfixExpression TOK_LEFT_PAR TOK_RIGHT_PAR { $$ = 0; } /* TODO */
+    | PostfixExpression TOK_LEFT_PAR ArgumentList TOK_RIGHT_PAR { $$ = 0; } /* TODO */
+    | TypeCtorsopt BasicType TOK_LEFT_PAR TOK_RIGHT_PAR { $$ = 0; } /* TODO */
+    | TypeCtorsopt BasicType TOK_LEFT_PAR ArgumentList TOK_RIGHT_PAR { $$ = 0; } /* TODO */
+    | IndexExpression { $$ = 0; } /* TODO */
+    | SliceExpression { $$ = 0; } /* TODO */
     ;
 
 IndexExpression
-    : PostfixExpression TOK_RIGHT_SQUARE ArgumentList TOK_LEFT_SQUARE {}
+    : PostfixExpression TOK_RIGHT_SQUARE ArgumentList TOK_LEFT_SQUARE { $$ = 0; } /* TODO */
     ;
 
 SliceExpression
-    : PostfixExpression TOK_LEFT_SQUARE TOK_RIGHT_SQUARE {}
-    | PostfixExpression TOK_LEFT_SQUARE AssignExpression TOK_DOUBLE_DOT AssignExpression TOK_RIGHT_SQUARE {}
+    : PostfixExpression TOK_LEFT_SQUARE TOK_RIGHT_SQUARE { $$ = 0; } /* TODO */
+    | PostfixExpression TOK_LEFT_SQUARE AssignExpression TOK_DOUBLE_DOT AssignExpression TOK_RIGHT_SQUARE { $$ = 0; } /* TODO */
     ;
 
 PrimaryExpression
-    : TOK_IDENTIFIER {}
-    | TOK_DOT TOK_IDENTIFIER {}
-    | TemplateInstance {}
-    | TOK_DOT TemplateInstance {}
-    | TOK_THIS {}
-    | TOK_SUPER {}
-    | TOK_NULL {}
-    | TOK_TRUE {}
-    | TOK_FALSE {}
-    | TOK_DOLLAR {}
-    | TOK__FILE {}
-    | TOK__MODULE {}
-    | TOK__LINE {}
-    | TOK__FUNCTION {}
-    | TOK__PRETTY_FUNCTION {}
-    | TOK_INT_CONSTANT {}
-    | TOK_REAL_CONSTANT {}
-    | TOK_CHAR_LITERAL {}
-    | TOK_STRING_LITERAL {}
-    | ArrayLiteral {}
-    | AssocArrayLiteral {}
-    | Lambda {}
-    | FunctionLiteral {}
-    | AssertExpression {}
-    | MixinExpression {}
-    | ImportExpression {}
-    | NewExpressionWithArgs {}
-    | BasicType TOK_DOT TOK_IDENTIFIER {}
-    | Typeof {}
-    | TypeidExpression {}
-    | IsExpression {}
-    | TOK_LEFT_PAR Expression TOK_RIGHT_PAR {}
-    /*| TraitsExpression {}*/ /* TODO */
+    : TOK_IDENTIFIER { $$ = 0; } /* TODO */
+    | TOK_DOT TOK_IDENTIFIER { $$ = 0; } /* TODO */
+    | TemplateInstance { $$ = 0; } /* TODO */
+    | TOK_DOT TemplateInstance { $$ = 0; } /* TODO */
+    | TOK_THIS { $$ = 0; } /* TODO */
+    | TOK_SUPER { $$ = 0; } /* TODO */
+    | TOK_NULL { $$ = 0; } /* TODO */
+    | TOK_TRUE { $$ = 0; } /* TODO */
+    | TOK_FALSE { $$ = 0; } /* TODO */
+    | TOK_DOLLAR { $$ = 0; } /* TODO */
+    | TOK__FILE { $$ = 0; } /* TODO */
+    | TOK__MODULE { $$ = 0; } /* TODO */
+    | TOK__LINE { $$ = 0; } /* TODO */
+    | TOK__FUNCTION { $$ = 0; } /* TODO */
+    | TOK__PRETTY_FUNCTION { $$ = 0; } /* TODO */
+    | TOK_INT_CONSTANT { $$ = 0; } /* TODO */
+    | TOK_REAL_CONSTANT { $$ = 0; } /* TODO */
+    | TOK_CHAR_LITERAL { $$ = 0; } /* TODO */
+    | TOK_STRING_LITERAL { $$ = 0; } /* TODO */
+    | ArrayLiteral { $$ = 0; } /* TODO */
+    | AssocArrayLiteral { $$ = 0; } /* TODO */
+    | Lambda { $$ = 0; } /* TODO */
+    | FunctionLiteral { $$ = 0; } /* TODO */
+    | AssertExpression { $$ = 0; } /* TODO */
+    | MixinExpression { $$ = 0; } /* TODO */
+    | ImportExpression { $$ = 0; } /* TODO */
+    | NewExpressionWithArgs { $$ = 0; } /* TODO */
+    | BasicType TOK_DOT TOK_IDENTIFIER { $$ = 0; } /* TODO */
+    | Typeof { $$ = 0; } /* TODO */
+    | TypeidExpression { $$ = 0; } /* TODO */
+    | IsExpression { $$ = 0; } /* TODO */
+    | TOK_LEFT_PAR Expression TOK_RIGHT_PAR { $$ = 0; } /* TODO */
+    /*| TraitsExpression { $$ = 0; } */ /* TODO */
     ;
 
 StringLiterals
-    : TOK_STRING_LITERAL {}
-    | StringLiterals TOK_STRING_LITERAL {}
+    : TOK_STRING_LITERAL { $$ = 0; } /* TODO */
+    | StringLiterals TOK_STRING_LITERAL { $$ = 0; } /* TODO */
     ;
 
 ArrayLiteral
-    : TOK_LEFT_SQUARE ArgumentList TOK_RIGHT_SQUARE {}
+    : TOK_LEFT_SQUARE ArgumentList TOK_RIGHT_SQUARE { $$ = 0; } /* TODO */
     ;
 
 AssocArrayLiteral
-    : TOK_LEFT_SQUARE KeyValuePairs TOK_RIGHT_SQUARE {}
+    : TOK_LEFT_SQUARE KeyValuePairs TOK_RIGHT_SQUARE { $$ = 0; } /* TODO */
     ;
 
 KeyValuePairs
-    : KeyValuePair {}
-    | KeyValuePair TOK_COMMA KeyValuePairs {}
+    : KeyValuePair { $$ = 0; } /* TODO */
+    | KeyValuePair TOK_COMMA KeyValuePairs { $$ = 0; } /* TODO */
     ;
 
 KeyValuePair
-    : KeyExpression TOK_COLON ValueExpression {}
+    : KeyExpression TOK_COLON ValueExpression { $$ = 0; } /* TODO */
     ;
 
 KeyExpression
-    : AssignExpression {}
+    : AssignExpression { $$ = 0; } /* TODO */
     ;
 
 ValueExpression
-    : AssignExpression {}
+    : AssignExpression { $$ = 0; } /* TODO */
     ;
 
 Lambda
-    : TOK_IDENTIFIER TOK_RIGHT_ARROW AssignExpression {}
-    | TOK_FUNCTION ParameterAttributes TOK_RIGHT_ARROW AssignExpression {}
-    | TOK_DELEGATE ParameterAttributes TOK_RIGHT_ARROW AssignExpression {}
-    | ParameterAttributes TOK_RIGHT_ARROW AssignExpression {}
+    : TOK_IDENTIFIER TOK_RIGHT_ARROW AssignExpression { $$ = 0; } /* TODO */
+    | TOK_FUNCTION ParameterAttributes TOK_RIGHT_ARROW AssignExpression { $$ = 0; } /* TODO */
+    | TOK_DELEGATE ParameterAttributes TOK_RIGHT_ARROW AssignExpression { $$ = 0; } /* TODO */
+    | ParameterAttributes TOK_RIGHT_ARROW AssignExpression { $$ = 0; } /* TODO */
     ;
 
 FunctionLiteral
-    : TOK_FUNCTION Typeopt ParameterAttributesopt FunctionBody {}
-    | TOK_DELEGATE Typeopt ParameterAttributesopt FunctionBody {}
-    | ParameterAttributes FunctionBody {}
-    | FunctionBody {}
+    : TOK_FUNCTION Typeopt ParameterAttributesopt FunctionBody { $$ = 0; } /* TODO */
+    | TOK_DELEGATE Typeopt ParameterAttributesopt FunctionBody { $$ = 0; } /* TODO */
+    | ParameterAttributes FunctionBody { $$ = 0; } /* TODO */
+    | FunctionBody { $$ = 0; } /* TODO */
     ;
 
 ParameterAttributesopt
-    : {}
-    | ParameterAttributes {}
+    : { $$ = 0; } /* TODO */
+    | ParameterAttributes { $$ = 0; } /* TODO */
     ;
 
 ParameterAttributes
-    : Parameters {}
-    | Parameters FunctionAttributes {}
+    : Parameters { $$ = 0; } /* TODO */
+    | Parameters FunctionAttributes { $$ = 0; } /* TODO */
     ;
 
 AssertExpression
-    : TOK_ASSERT TOK_LEFT_PAR AssignExpression TOK_RIGHT_PAR {}
-    | TOK_ASSERT TOK_LEFT_PAR AssignExpression TOK_COMMA AssignExpression TOK_RIGHT_PAR {}
+    : TOK_ASSERT TOK_LEFT_PAR AssignExpression TOK_RIGHT_PAR { $$ = 0; } /* TODO */
+    | TOK_ASSERT TOK_LEFT_PAR AssignExpression TOK_COMMA AssignExpression TOK_RIGHT_PAR { $$ = 0; } /* TODO */
     ;
 
 MixinExpression
-    : TOK_MIXIN TOK_LEFT_PAR AssignExpression TOK_RIGHT_PAR {}
+    : TOK_MIXIN TOK_LEFT_PAR AssignExpression TOK_RIGHT_PAR { $$ = 0; } /* TODO */
     ;
 
 ImportExpression
-    : TOK_IMPORT TOK_LEFT_PAR AssignExpression TOK_RIGHT_PAR {}
+    : TOK_IMPORT TOK_LEFT_PAR AssignExpression TOK_RIGHT_PAR { $$ = 0; } /* TODO */
     ;
 
 TypeidExpression
-    : TOK_TYPEID TOK_LEFT_PAR Type TOK_RIGHT_PAR {}
-    | TOK_TYPEID TOK_LEFT_PAR Expression TOK_RIGHT_PAR {}
+    : TOK_TYPEID TOK_LEFT_PAR Type TOK_RIGHT_PAR { $$ = 0; } /* TODO */
+    | TOK_TYPEID TOK_LEFT_PAR Expression TOK_RIGHT_PAR { $$ = 0; } /* TODO */
     ;
 
 IsExpression
-    : TOK_IS TOK_LEFT_PAR Type TOK_RIGHT_PAR {}
-    | TOK_IS TOK_LEFT_PAR Type TOK_COLON TypeSpecialization TOK_RIGHT_PAR {}
-    | TOK_IS TOK_LEFT_PAR Type TOK_EQ TypeSpecialization TOK_RIGHT_PAR {}
-    | TOK_IS TOK_LEFT_PAR Type TOK_COLON TypeSpecialization TOK_COMMA TemplateParameterList TOK_RIGHT_PAR {}
-    | TOK_IS TOK_LEFT_PAR Type TOK_EQ TypeSpecialization TOK_COMMA TemplateParameterList TOK_RIGHT_PAR {}
-    | TOK_IS TOK_LEFT_PAR Type TOK_IDENTIFIER TOK_RIGHT_PAR {}
-    | TOK_IS TOK_LEFT_PAR Type TOK_IDENTIFIER TOK_COLON TypeSpecialization TOK_RIGHT_PAR {}
-    | TOK_IS TOK_LEFT_PAR Type TOK_IDENTIFIER TOK_EQ TypeSpecialization TOK_RIGHT_PAR {}
-    | TOK_IS TOK_LEFT_PAR Type TOK_IDENTIFIER TOK_COLON TypeSpecialization TOK_COMMA TemplateParameterList TOK_RIGHT_PAR {}
-    | TOK_IS TOK_LEFT_PAR Type TOK_IDENTIFIER TOK_EQ TypeSpecialization TOK_COMMA TemplateParameterList TOK_RIGHT_PAR {}
+    : TOK_IS TOK_LEFT_PAR Type TOK_RIGHT_PAR { $$ = 0; } /* TODO */
+    | TOK_IS TOK_LEFT_PAR Type TOK_COLON TypeSpecialization TOK_RIGHT_PAR { $$ = 0; } /* TODO */
+    | TOK_IS TOK_LEFT_PAR Type TOK_EQ TypeSpecialization TOK_RIGHT_PAR { $$ = 0; } /* TODO */
+    | TOK_IS TOK_LEFT_PAR Type TOK_COLON TypeSpecialization TOK_COMMA TemplateParameterList TOK_RIGHT_PAR { $$ = 0; } /* TODO */
+    | TOK_IS TOK_LEFT_PAR Type TOK_EQ TypeSpecialization TOK_COMMA TemplateParameterList TOK_RIGHT_PAR { $$ = 0; } /* TODO */
+    | TOK_IS TOK_LEFT_PAR Type TOK_IDENTIFIER TOK_RIGHT_PAR { $$ = 0; } /* TODO */
+    | TOK_IS TOK_LEFT_PAR Type TOK_IDENTIFIER TOK_COLON TypeSpecialization TOK_RIGHT_PAR { $$ = 0; } /* TODO */
+    | TOK_IS TOK_LEFT_PAR Type TOK_IDENTIFIER TOK_EQ TypeSpecialization TOK_RIGHT_PAR { $$ = 0; } /* TODO */
+    | TOK_IS TOK_LEFT_PAR Type TOK_IDENTIFIER TOK_COLON TypeSpecialization TOK_COMMA TemplateParameterList TOK_RIGHT_PAR { $$ = 0; } /* TODO */
+    | TOK_IS TOK_LEFT_PAR Type TOK_IDENTIFIER TOK_EQ TypeSpecialization TOK_COMMA TemplateParameterList TOK_RIGHT_PAR { $$ = 0; } /* TODO */
     ;
 
 TypeSpecialization
-    : Type {}
-    | TOK_STRUCT {}
-    | TOK_UNION {}
-    | TOK_CLASS {}
-    | TOK_INTERFACE {}
-    | TOK_ENUM {}
-    | TOK_FUNCTION {}
-    | TOK_DELEGATE {}
-    | TOK_SUPER {}
-    | TOK_CONST {}
-    | TOK_IMMUTABLE {}
-    | TOK_INOUT {}
-    | TOK_SHARED {}
-    | TOK_RETURN {}
-    | TOK__PARAMETERS {}
+    : Type { $$ = 0; } /* TODO */
+    | TOK_STRUCT { $$ = 0; } /* TODO */
+    | TOK_UNION { $$ = 0; } /* TODO */
+    | TOK_CLASS { $$ = 0; } /* TODO */
+    | TOK_INTERFACE { $$ = 0; } /* TODO */
+    | TOK_ENUM { $$ = 0; } /* TODO */
+    | TOK_FUNCTION { $$ = 0; } /* TODO */
+    | TOK_DELEGATE { $$ = 0; } /* TODO */
+    | TOK_SUPER { $$ = 0; } /* TODO */
+    | TOK_CONST { $$ = 0; } /* TODO */
+    | TOK_IMMUTABLE { $$ = 0; } /* TODO */
+    | TOK_INOUT { $$ = 0; } /* TODO */
+    | TOK_SHARED { $$ = 0; } /* TODO */
+    | TOK_RETURN { $$ = 0; } /* TODO */
+    | TOK__PARAMETERS { $$ = 0; } /* TODO */
     ;
 
 /* ***** Statements ***** */
 
 Statement
-    : TOK_SEMICOLON {}
-    | NonEmptyStatement {}
-    | ScopeBlockStatement {}
+    : TOK_SEMICOLON { $$ = 0; }
+    | NonEmptyStatement { $$ = $1; }
+    | ScopeBlockStatement { $$ = $1; }
     ;
 
 NoScopeNonEmptyStatement
-    : NonEmptyStatement {}
-    | BlockStatement {}
+    : NonEmptyStatement { $$ = 0; } /* TODO */
+    | BlockStatement { $$ = 0; } /* TODO */
     ;
 
 NoScopeStatement
-    : TOK_SEMICOLON {}
-    | NonEmptyStatement {}
-    | BlockStatement {}
+    : TOK_SEMICOLON { $$ = 0; } /* TODO */
+    | NonEmptyStatement { $$ = 0; } /* TODO */
+    | BlockStatement { $$ = 0; } /* TODO */
     ;
 
 NonEmptyOrScopeBlockStatement
-    : NonEmptyStatement {}
-    | ScopeBlockStatement {}
+    : NonEmptyStatement { $$ = 0; } /* TODO */
+    | ScopeBlockStatement { $$ = 0; } /* TODO */
     ;
 
 NonEmptyStatement
-    : NonEmptyStatementNoCaseNoDefault {}
-    | CaseStatement {}
-    | CaseRangeStatement {}
-    | DefaultStatement {}
+    : NonEmptyStatementNoCaseNoDefault { $$ = $1; }
+    | CaseStatement { $$ = 0; } /* TODO */
+    | CaseRangeStatement { $$ = 0; } /* TODO */
+    | DefaultStatement { $$ = 0; } /* TODO */
     ;
 
 NonEmptyStatementNoCaseNoDefault
-    : LabeledStatement {}
-    | ExpressionStatement {}
-    | DeclarationStatement {}
-    | IfStatement {}
-    | WhileStatement {}
-    | DoStatement {}
-    | ForStatement {}
-    | ForeachStatement {}
-    | SwitchStatement {}
-    | FinalSwitchStatement {}
-    | ContinueStatement {}
-    | BreakStatement {}
-    | ReturnStatement {}
-    | GotoStatement {}
-    | WithStatement {}
-    | SynchronizedStatement {}
-    | TryStatement {}
-    | ScopeGuardStatement {}
-    | ThrowStatement {}
-/*    | AsmStatement {} */ /* TODO */
-    | PragmaStatement {}
-    | MixinStatement {}
-    | ForeachRangeStatement {}
-    /*| ConditionalStatement {}*/ /* TODO */
-    /*| StaticAssert {}*/ /* TODO */
-    | TemplateMixin {}
-    | ImportDeclaration {}
+    : LabeledStatement { $$ = 0; } /* TODO */
+    | ExpressionStatement { $$ = 0; } /* TODO */
+    | DeclarationStatement { $$ = $1; }
+    | IfStatement { $$ = 0; } /* TODO */
+    | WhileStatement { $$ = 0; } /* TODO */
+    | DoStatement { $$ = 0; } /* TODO */
+    | ForStatement { $$ = 0; } /* TODO */
+    | ForeachStatement { $$ = 0; } /* TODO */
+    | SwitchStatement { $$ = 0; } /* TODO */
+    | FinalSwitchStatement { $$ = 0; } /* TODO */
+    | ContinueStatement { $$ = 0; } /* TODO */
+    | BreakStatement { $$ = 0; } /* TODO */
+    | ReturnStatement { $$ = 0; } /* TODO */
+    | GotoStatement { $$ = 0; } /* TODO */
+    | WithStatement { $$ = 0; } /* TODO */
+    | SynchronizedStatement { $$ = 0; } /* TODO */
+    | TryStatement { $$ = 0; } /* TODO */
+    | ScopeGuardStatement { $$ = 0; } /* TODO */
+    | ThrowStatement { $$ = 0; } /* TODO */
+/*    | AsmStatement { $$ = 0; }  */ /* TODO */
+    | PragmaStatement { $$ = 0; } /* TODO */
+    | MixinStatement { $$ = 0; } /* TODO */
+    | ForeachRangeStatement { $$ = 0; } /* TODO */
+    /*| ConditionalStatement { $$ = 0; } */ /* TODO */
+    /*| StaticAssert { $$ = 0; } */ /* TODO */
+    | TemplateMixin { $$ = 0; } /* TODO */
+    | ImportDeclaration { $$ = 0; } /* TODO */
     ;
 
 ScopeStatement
-    : NonEmptyStatement {}
-    | BlockStatement {}
+    : NonEmptyStatement { $$ = 0; } /* TODO */
+    | BlockStatement { $$ = 0; } /* TODO */
     ;
 
 ScopeBlockStatement
-    : BlockStatement {}
+    : BlockStatement { $$ = 0; } /* TODO */
     ;
 
 
 LabeledStatement
-    : TOK_IDENTIFIER TOK_COLON {}
-    | TOK_IDENTIFIER TOK_COLON NoScopeStatement {}
-    | TOK_IDENTIFIER TOK_COLON Statement {}
+    : TOK_IDENTIFIER TOK_COLON { $$ = 0; } /* TODO */
+    | TOK_IDENTIFIER TOK_COLON NoScopeStatement { $$ = 0; } /* TODO */
+    | TOK_IDENTIFIER TOK_COLON Statement { $$ = 0; } /* TODO */
     ;
 
 BlockStatement
-    : TOK_LEFT_BRACE TOK_RIGHT_BRACE {}
-    | TOK_LEFT_BRACE StatementList TOK_RIGHT_BRACE {}
+    : TOK_LEFT_BRACE TOK_RIGHT_BRACE { $$ = 0; }
+    | TOK_LEFT_BRACE StatementList TOK_RIGHT_BRACE { $$ = $2; }
     ;
 
 StatementList
-    : Statement {}
-    | Statement StatementList {}
+    : Statement { $$ = new NodeList; $$->addChild($1); }
+    | Statement StatementList { $$ = $2; $$->addChild($2); }
     ;
 
 ExpressionStatement
-    : Expression TOK_SEMICOLON {}
+    : Expression TOK_SEMICOLON { $$ = 0; } /* TODO */
     ;
 
 DeclarationStatement
-    : Declaration {}
+    : Declaration { $$ = $1; }
     ;
 
 IfStatement
-    : TOK_IF TOK_LEFT_PAR IfCondition TOK_RIGHT_PAR ThenStatement {}
-    | TOK_IF TOK_LEFT_PAR IfCondition TOK_RIGHT_PAR ThenStatement TOK_ELSE ElseStatement {}
+    : TOK_IF TOK_LEFT_PAR IfCondition TOK_RIGHT_PAR ThenStatement { $$ = 0; } /* TODO */
+    | TOK_IF TOK_LEFT_PAR IfCondition TOK_RIGHT_PAR ThenStatement TOK_ELSE ElseStatement { $$ = 0; } /* TODO */
     ;
 
 IfCondition
-    : Expression {}
-    | TOK_AUTO TOK_IDENTIFIER TOK_ASSIGN Expression {}
-    | BasicType Declarator TOK_ASSIGN Expression {}
+    : Expression { $$ = 0; } /* TODO */
+    | TOK_AUTO TOK_IDENTIFIER TOK_ASSIGN Expression { $$ = 0; } /* TODO */
+    | BasicType Declarator TOK_ASSIGN Expression { $$ = 0; } /* TODO */
     ;
 
 ThenStatement
-    : ScopeStatement {}
+    : ScopeStatement { $$ = 0; } /* TODO */
     ;
 
 ElseStatement
-    : ScopeStatement {}
+    : ScopeStatement { $$ = 0; } /* TODO */
     ;
 
 WhileStatement
-    : TOK_WHILE TOK_LEFT_PAR Expression TOK_RIGHT_PAR ScopeStatement {}
+    : TOK_WHILE TOK_LEFT_PAR Expression TOK_RIGHT_PAR ScopeStatement { $$ = 0; } /* TODO */
     ;
 
 DoStatement
-    : TOK_DO ScopeStatement TOK_WHILE TOK_LEFT_PAR Expression TOK_RIGHT_PAR TOK_SEMICOLON {}
+    : TOK_DO ScopeStatement TOK_WHILE TOK_LEFT_PAR Expression TOK_RIGHT_PAR TOK_SEMICOLON { $$ = 0; } /* TODO */
     ;
 
 ForStatement
-    : TOK_FOR TOK_LEFT_PAR Initialize Testopt TOK_SEMICOLON Incrementopt TOK_RIGHT_PAR ScopeStatement {}
+    : TOK_FOR TOK_LEFT_PAR Initialize Testopt TOK_SEMICOLON Incrementopt TOK_RIGHT_PAR ScopeStatement { $$ = 0; } /* TODO */
     ;
 
 Initialize
-    : TOK_SEMICOLON {}
-    | NoScopeNonEmptyStatement {}
+    : TOK_SEMICOLON { $$ = 0; } /* TODO */
+    | NoScopeNonEmptyStatement { $$ = 0; } /* TODO */
     ;
 
 Testopt
-    : {}
-    | Testopt {}
+    : { $$ = 0; } /* TODO */
+    | Testopt { $$ = 0; } /* TODO */
     ;
 
 Test
-    : Expression {}
+    : Expression { $$ = 0; } /* TODO */
     ;
 
 Incrementopt
-    : {}
-    | Increment {}
+    : { $$ = 0; } /* TODO */
+    | Increment { $$ = 0; } /* TODO */
     ;
 
 Increment
-    : Expression {}
+    : Expression { $$ = 0; } /* TODO */
     ;
 
 ForeachStatement
-    : Foreach TOK_LEFT_PAR ForeachTypeList TOK_SEMICOLON Aggregate TOK_RIGHT_PAR NoScopeNonEmptyStatement {}
+    : Foreach TOK_LEFT_PAR ForeachTypeList TOK_SEMICOLON Aggregate TOK_RIGHT_PAR NoScopeNonEmptyStatement { $$ = 0; } /* TODO */
     ;
 
 Foreach
-    : TOK_FOREACH {}
-    | TOK_FOREACH_REVERSE {}
+    : TOK_FOREACH { $$ = 0; } /* TODO */
+    | TOK_FOREACH_REVERSE { $$ = 0; } /* TODO */
     ;
 
 ForeachTypeList
-    : ForeachType {}
-    | ForeachType TOK_COMMA ForeachTypeList {}
+    : ForeachType { $$ = 0; } /* TODO */
+    | ForeachType TOK_COMMA ForeachTypeList { $$ = 0; } /* TODO */
     ;
 
 Refopt
-    : {}
-    | TOK_REF {}
+    : { $$ = 0; } /* TODO */
+    | TOK_REF { $$ = 0; } /* TODO */
     ;
 
 ForeachType
-    : Refopt BasicType Declarator {}
-    Refopt TOK_IDENTIFIER {}
+    : Refopt BasicType Declarator { $$ = 0; } /* TODO */
+    | Refopt TOK_IDENTIFIER { $$ = 0; } /* TODO */
     ;
 
 Aggregate
-    : Expression {}
+    : Expression { $$ = 0; } /* TODO */
     ;
 
 ForeachRangeStatement
-    : Foreach TOK_LEFT_PAR ForeachType TOK_SEMICOLON LwrExpression TOK_DOUBLE_DOT UprExpression TOK_RIGHT_PAR ScopeStatement {}
+    : Foreach TOK_LEFT_PAR ForeachType TOK_SEMICOLON LwrExpression TOK_DOUBLE_DOT UprExpression TOK_RIGHT_PAR ScopeStatement { $$ = 0; } /* TODO */
     ;
 
 LwrExpression
-    : Expression {}
+    : Expression { $$ = 0; } /* TODO */
     ;
 
 UprExpression
-    : Expression {}
+    : Expression { $$ = 0; } /* TODO */
     ;
 
 SwitchStatement
-    : TOK_SWITCH TOK_LEFT_PAR Expression TOK_RIGHT_PAR ScopeStatement {}
+    : TOK_SWITCH TOK_LEFT_PAR Expression TOK_RIGHT_PAR ScopeStatement { $$ = 0; } /* TODO */
     ;
 
 CaseStatement
-    : TOK_CASE ArgumentList TOK_COLON ScopeStatementList {}
+    : TOK_CASE ArgumentList TOK_COLON ScopeStatementList { $$ = 0; } /* TODO */
     ;
 
 CaseRangeStatement
-    : TOK_CASE FirstExp TOK_COLON TOK_DOUBLE_DOT TOK_CASE LastExp TOK_COLON ScopeStatementList {}
+    : TOK_CASE FirstExp TOK_COLON TOK_DOUBLE_DOT TOK_CASE LastExp TOK_COLON ScopeStatementList { $$ = 0; } /* TODO */
     ;
 
 FirstExp
-    : AssignExpression {}
+    : AssignExpression { $$ = 0; } /* TODO */
     ;
 
 LastExp
-    : AssignExpression {}
+    : AssignExpression { $$ = 0; } /* TODO */
     ;
 
 DefaultStatement
-    : TOK_DEFAULT TOK_COLON ScopeStatementList {}
+    : TOK_DEFAULT TOK_COLON ScopeStatementList { $$ = 0; } /* TODO */
     ;
 
 ScopeStatementList
-    : StatementListNoCaseNoDefault {}
+    : StatementListNoCaseNoDefault { $$ = 0; } /* TODO */
     ;
 
 StatementListNoCaseNoDefault
-    : StatementNoCaseNoDefault {}
-    | StatementNoCaseNoDefault StatementListNoCaseNoDefault {}
+    : StatementNoCaseNoDefault { $$ = 0; } /* TODO */
+    | StatementNoCaseNoDefault StatementListNoCaseNoDefault { $$ = 0; } /* TODO */
     ;
 
 StatementNoCaseNoDefault
-    : TOK_SEMICOLON {}
-    | NonEmptyStatementNoCaseNoDefault {}
-    | ScopeBlockStatement {}
+    : TOK_SEMICOLON { $$ = 0; } /* TODO */
+    | NonEmptyStatementNoCaseNoDefault { $$ = 0; } /* TODO */
+    | ScopeBlockStatement { $$ = 0; } /* TODO */
     ;
 
 FinalSwitchStatement
-    : TOK_FINAL TOK_SWITCH TOK_LEFT_PAR Expression TOK_RIGHT_PAR ScopeStatement {}
+    : TOK_FINAL TOK_SWITCH TOK_LEFT_PAR Expression TOK_RIGHT_PAR ScopeStatement { $$ = 0; } /* TODO */
     ;
 
 
@@ -1682,130 +1686,130 @@ Identifier
     ;
 
 ContinueStatement
-    : TOK_CONTINUE Identifieropt TOK_SEMICOLON {}
+    : TOK_CONTINUE Identifieropt TOK_SEMICOLON { $$ = 0; } /* TODO */
     ;
 
 BreakStatement
-    : TOK_BREAK Identifieropt TOK_SEMICOLON {}
+    : TOK_BREAK Identifieropt TOK_SEMICOLON { $$ = 0; } /* TODO */
     ;
 
 ReturnStatement
-    : TOK_RETURN Expressionopt TOK_SEMICOLON {}
+    : TOK_RETURN Expressionopt TOK_SEMICOLON { $$ = 0; } /* TODO */
     ;
 
 GotoStatement
-    : TOK_GOTO Identifier TOK_SEMICOLON {}
-    | TOK_GOTO TOK_DEFAULT TOK_SEMICOLON {}
-    | TOK_GOTO TOK_CASE TOK_SEMICOLON {}
-    | TOK_GOTO TOK_CASE Expression TOK_SEMICOLON {}
+    : TOK_GOTO Identifier TOK_SEMICOLON { $$ = 0; } /* TODO */
+    | TOK_GOTO TOK_DEFAULT TOK_SEMICOLON { $$ = 0; } /* TODO */
+    | TOK_GOTO TOK_CASE TOK_SEMICOLON { $$ = 0; } /* TODO */
+    | TOK_GOTO TOK_CASE Expression TOK_SEMICOLON { $$ = 0; } /* TODO */
     ;
 
 WithStatement
-    : TOK_WITH TOK_LEFT_PAR Expression TOK_RIGHT_PAR ScopeStatement {}
-    | TOK_WITH TOK_LEFT_PAR Symbol TOK_RIGHT_PAR ScopeStatement {}
-    | TOK_WITH TOK_LEFT_PAR TemplateInstance TOK_RIGHT_PAR ScopeStatement {}
+    : TOK_WITH TOK_LEFT_PAR Expression TOK_RIGHT_PAR ScopeStatement { $$ = 0; } /* TODO */
+    | TOK_WITH TOK_LEFT_PAR Symbol TOK_RIGHT_PAR ScopeStatement { $$ = 0; } /* TODO */
+    | TOK_WITH TOK_LEFT_PAR TemplateInstance TOK_RIGHT_PAR ScopeStatement { $$ = 0; } /* TODO */
     ;
 
 SynchronizedStatement
-    : TOK_SYNCHRONIZED ScopeStatement {}
-    | TOK_SYNCHRONIZED TOK_LEFT_PAR Expression TOK_RIGHT_PAR ScopeStatement {}
+    : TOK_SYNCHRONIZED ScopeStatement { $$ = 0; } /* TODO */
+    | TOK_SYNCHRONIZED TOK_LEFT_PAR Expression TOK_RIGHT_PAR ScopeStatement { $$ = 0; } /* TODO */
     ;
 
 TryStatement
-    : TOK_TRY ScopeStatement Catches {}
-    | TOK_TRY ScopeStatement Catches FinallyStatement {}
-    | TOK_TRY ScopeStatement FinallyStatement {}
+    : TOK_TRY ScopeStatement Catches { $$ = 0; } /* TODO */
+    | TOK_TRY ScopeStatement Catches FinallyStatement { $$ = 0; } /* TODO */
+    | TOK_TRY ScopeStatement FinallyStatement { $$ = 0; } /* TODO */
     ;
 
 Catches
-    : LastCatch {}
-    | Catch {}
-    | Catch Catches {}
+    : LastCatch { $$ = 0; } /* TODO */
+    | Catch { $$ = 0; } /* TODO */
+    | Catch Catches { $$ = 0; } /* TODO */
     ;
 
 LastCatch
-    : TOK_CATCH NoScopeNonEmptyStatement {}
+    : TOK_CATCH NoScopeNonEmptyStatement { $$ = 0; } /* TODO */
     ;
 
 Catch
-    : TOK_CATCH TOK_LEFT_PAR CatchParameter TOK_RIGHT_PAR NoScopeNonEmptyStatement {}
+    : TOK_CATCH TOK_LEFT_PAR CatchParameter TOK_RIGHT_PAR NoScopeNonEmptyStatement { $$ = 0; } /* TODO */
     ;
 
 CatchParameter
-    : BasicType Identifier {}
+    : BasicType Identifier { $$ = 0; } /* TODO */
     ;
 
 FinallyStatement
-    : TOK_FINALLY NoScopeNonEmptyStatement {}
+    : TOK_FINALLY NoScopeNonEmptyStatement { $$ = 0; } /* TODO */
     ;
 
 ThrowStatement
-    : TOK_THROW Expression TOK_SEMICOLON {}
+    : TOK_THROW Expression TOK_SEMICOLON { $$ = 0; } /* TODO */
     ;
 
 ScopeGuardStatement
-    : TOK_SCOPE_EXIT NonEmptyOrScopeBlockStatement {}
-    | TOK_SCOPE_SUCCESS NonEmptyOrScopeBlockStatement {}
-    | TOK_SCOPE_FAILURE NonEmptyOrScopeBlockStatement {}
+    : TOK_SCOPE_EXIT NonEmptyOrScopeBlockStatement { $$ = 0; } /* TODO */
+    | TOK_SCOPE_SUCCESS NonEmptyOrScopeBlockStatement { $$ = 0; } /* TODO */
+    | TOK_SCOPE_FAILURE NonEmptyOrScopeBlockStatement { $$ = 0; } /* TODO */
     ;
 
 /*AsmStatement
-    : TOK_ASM TOK_LEFT_BRACE TOK_RIGHT_BRACE {}
-    | TOK_ASM TOK_LEFT_BRACE AsmInstructionList TOK_RIGHT_BRACE {}
+    : TOK_ASM TOK_LEFT_BRACE TOK_RIGHT_BRACE { $$ = 0; }
+    | TOK_ASM TOK_LEFT_BRACE AsmInstructionList TOK_RIGHT_BRACE { $$ = 0; }
     ;
 
 AsmInstructionList
-    : AsmInstruction TOK_SEMICOLON {}
-    | AsmInstruction TOK_SEMICOLON AsmInstructionList {}*/
+    : AsmInstruction TOK_SEMICOLON { $$ = 0; }
+    | AsmInstruction TOK_SEMICOLON AsmInstructionList { $$ = 0; }*/
 
 PragmaStatement
-    : Pragma NoScopeStatement {}
+    : Pragma NoScopeStatement { $$ = 0; } /* TODO */
     ;
 
 MixinStatement
-    : TOK_MIXIN TOK_LEFT_PAR AssignExpression TOK_RIGHT_PAR TOK_SEMICOLON {}
+    : TOK_MIXIN TOK_LEFT_PAR AssignExpression TOK_RIGHT_PAR TOK_SEMICOLON { $$ = 0; } /* TODO */
     ;
 
 
 /* ***** Structs & Unions ***** */
 
 AggregateDeclaration
-    : TOK_STRUCT Identifier StructBody {}
-    | TOK_UNION Identifier StructBody {}
-    | TOK_STRUCT Identifier TOK_SEMICOLON {}
-    | TOK_UNION Identifier TOK_SEMICOLON {}
-    | StructTemplateDeclaration {}
-    | UnionTemplateDeclaration {}
+    : TOK_STRUCT Identifier StructBody { $$ = 0; } /* TODO */
+    | TOK_UNION Identifier StructBody { $$ = 0; } /* TODO */
+    | TOK_STRUCT Identifier TOK_SEMICOLON { $$ = 0; } /* TODO */
+    | TOK_UNION Identifier TOK_SEMICOLON { $$ = 0; } /* TODO */
+    | StructTemplateDeclaration { $$ = 0; } /* TODO */
+    | UnionTemplateDeclaration { $$ = 0; } /* TODO */
     ;
 
 StructBody
-    : TOK_LEFT_BRACE TOK_RIGHT_BRACE {}
-    | TOK_LEFT_BRACE StructBodyDeclarations TOK_RIGHT_BRACE {}
+    : TOK_LEFT_BRACE TOK_RIGHT_BRACE { $$ = 0; } /* TODO */
+    | TOK_LEFT_BRACE StructBodyDeclarations TOK_RIGHT_BRACE { $$ = 0; } /* TODO */
     ;
 
 StructBodyDeclarations
-    : StructBodyDeclaration {}
-    | StructBodyDeclaration StructBodyDeclarations {}
+    : StructBodyDeclaration { $$ = 0; } /* TODO */
+    | StructBodyDeclaration StructBodyDeclarations { $$ = 0; } /* TODO */
     ;
 
 StructBodyDeclaration
-    : DeclDef {}
-    | StructAllocator {}
-    | StructDeallocator {}
-    | StructPostblit {}
-    | AliasThis {}
+    : DeclDef { $$ = 0; } /* TODO */
+    | StructAllocator { $$ = 0; } /* TODO */
+    | StructDeallocator { $$ = 0; } /* TODO */
+    | StructPostblit { $$ = 0; } /* TODO */
+    | AliasThis { $$ = 0; } /* TODO */
     ;
 
 StructAllocator
-    : ClassAllocator {}
+    : ClassAllocator { $$ = 0; } /* TODO */
     ;
 
 StructDeallocator
-    : ClassDeallocator {}
+    : ClassDeallocator { $$ = 0; } /* TODO */
     ;
 
 StructPostblit
-    : TOK_THIS TOK_LEFT_PAR TOK_THIS TOK_RIGHT_PAR MemberFunctionAttributesopt FunctionBody {}
+    : TOK_THIS TOK_LEFT_PAR TOK_THIS TOK_RIGHT_PAR MemberFunctionAttributesopt FunctionBody { $$ = 0; } /* TODO */
     ;
 
 
@@ -1817,37 +1821,37 @@ ClassDeclaration
     ;
 
 BaseClassListopt
-    : {}
-    | BaseClassList {}
+    : { $$ = 0; } /* TODO */
+    | BaseClassList { $$ = 0; } /* TODO */
     ;
 
 BaseClassList
-    : TOK_COLON SuperClass {}
-    | TOK_COLON SuperClass TOK_COMMA Interfaces {}
-    | TOK_COLON Interfaces {}
+    : TOK_COLON SuperClass { $$ = 0; } /* TODO */
+    | TOK_COLON SuperClass TOK_COMMA Interfaces { $$ = 0; } /* TODO */
+    | TOK_COLON Interfaces { $$ = 0; } /* TODO */
     ;
 
 SuperClassopt
-    : {}
-    | SuperClass {}
+    : { $$ = 0; } /* TODO */
+    | SuperClass { $$ = 0; } /* TODO */
     ;
 
 SuperClass
-    : Identifier {}
+    : Identifier { $$ = 0; } /* TODO */
     ;
 
 Interfacesopt
-    : {}
-    | Interfaces {}
+    : { $$ = 0; } /* TODO */
+    | Interfaces { $$ = 0; } /* TODO */
     ;
 
 Interfaces
-    : Interface {}
+    : Interface { $$ = 0; } /* TODO */
     | Interface TOK_COMMA Interfaces
     ;
 
 Interface
-    : Identifier {}
+    : Identifier { $$ = 0; } /* TODO */
     ;
 
 ClassBody
@@ -1873,115 +1877,115 @@ Constructor
     ;
 
 Destructor
-    : TOK_TILDA TOK_THIS TOK_LEFT_PAR TOK_RIGHT_PAR MemberFunctionAttributesopt FunctionBody {}
+    : TOK_TILDA TOK_THIS TOK_LEFT_PAR TOK_RIGHT_PAR MemberFunctionAttributesopt FunctionBody { $$ = new DestructorNode; $$->addChild($6); $$->setPosition(@6.first_line, @6.last_line); }
     ;
 
 StaticConstructor
-    : TOK_STATIC TOK_THIS TOK_LEFT_PAR TOK_RIGHT_PAR FunctionBody {}
+    : TOK_STATIC TOK_THIS TOK_LEFT_PAR TOK_RIGHT_PAR FunctionBody { $$ = 0; } /* TODO */
     ;
 
 StaticDestructor
-    : TOK_STATIC TOK_TILDA TOK_THIS TOK_LEFT_PAR TOK_RIGHT_PAR FunctionBody {}
+    : TOK_STATIC TOK_TILDA TOK_THIS TOK_LEFT_PAR TOK_RIGHT_PAR FunctionBody { $$ = 0; } /* TODO */
     ;
 
 SharedStaticConstructor
-    : TOK_SHARED TOK_STATIC TOK_THIS TOK_LEFT_PAR TOK_RIGHT_PAR FunctionBody {}
+    : TOK_SHARED TOK_STATIC TOK_THIS TOK_LEFT_PAR TOK_RIGHT_PAR FunctionBody { $$ = 0; } /* TODO */
     ;
 
 SharedStaticDestructor
-    : TOK_SHARED TOK_STATIC TOK_TILDA TOK_THIS TOK_LEFT_PAR TOK_RIGHT_PAR FunctionBody {}
+    : TOK_SHARED TOK_STATIC TOK_TILDA TOK_THIS TOK_LEFT_PAR TOK_RIGHT_PAR FunctionBody { $$ = 0; } /* TODO */
     ;
 
 Invariant
-    : TOK_INVARIANT TOK_LEFT_PAR TOK_RIGHT_PAR BlockStatement {}
+    : TOK_INVARIANT TOK_LEFT_PAR TOK_RIGHT_PAR BlockStatement { $$ = 0; } /* TODO */
     ;
 
 ClassAllocator
-    : TOK_NEW Parameters FunctionBody {}
+    : TOK_NEW Parameters FunctionBody { $$ = 0; } /* TODO */
     ;
 
 ClassDeallocator
-    : TOK_DELETE Parameters FunctionBody {}
+    : TOK_DELETE Parameters FunctionBody { $$ = 0; } /* TODO */
     ;
 
 AliasThis
-    : TOK_ALIAS Identifier TOK_THIS TOK_SEMICOLON {}
+    : TOK_ALIAS Identifier TOK_THIS TOK_SEMICOLON { $$ = 0; } /* TODO */
     ;
 
 NewAnonClassExpression
-    : TOK_NEW AllocatorArgumentsopt TOK_CLASS ClassArgumentsopt SuperClassopt Interfacesopt {}
-    | ClassBody {}
+    : TOK_NEW AllocatorArgumentsopt TOK_CLASS ClassArgumentsopt SuperClassopt Interfacesopt { $$ = 0; } /* TODO */
+    | ClassBody { $$ = 0; } /* TODO */
     ;
 
 ClassArgumentsopt
-    : {}
-    | ClassArguments {}
+    : { $$ = 0; } /* TODO */
+    | ClassArguments { $$ = 0; } /* TODO */
     ;
 
 ClassArguments
-    : TOK_LEFT_PAR ArgumentListopt TOK_RIGHT_PAR {}
+    : TOK_LEFT_PAR ArgumentListopt TOK_RIGHT_PAR { $$ = 0; } /* TODO */
     ;
 
 /* ***** Interfaces ***** */
 
 InterfaceDeclaration
-    : TOK_INTERFACE Identifier BaseInterfaceListopt InterfaceBody {}
-    | InterfaceTemplateDeclaration {}
+    : TOK_INTERFACE Identifier BaseInterfaceListopt InterfaceBody { $$ = 0; } /* TODO */
+    | InterfaceTemplateDeclaration { $$ = 0; } /* TODO */
     ;
 
 BaseInterfaceListopt
-    : {}
-    | BaseInterfaceList {}
+    : { $$ = 0; } /* TODO */
+    | BaseInterfaceList { $$ = 0; } /* TODO */
     ;
 
 BaseInterfaceList
-    : TOK_COLON Interfaces {} /* FIXED InterfaceClasses */
+    : TOK_COLON Interfaces { $$ = 0; } /* TODO */ /* FIXED InterfaceClasses */
     ;
 
 InterfaceBody
-    : TOK_LEFT_BRACE DeclDefsopt TOK_RIGHT_BRACE {}
+    : TOK_LEFT_BRACE DeclDefsopt TOK_RIGHT_BRACE { $$ = 0; } /* TODO */
     ;
 
 /* ***** Enums ***** */
 
 EnumDeclaration
-    : TOK_ENUM EnumTag EnumBody {}
-    | TOK_ENUM EnumBody {}
-    | TOK_ENUM EnumTag TOK_COLON EnumBaseType EnumBody {}
-    | TOK_ENUM TOK_COLON EnumBaseType EnumBody {}
+    : TOK_ENUM EnumTag EnumBody { $$ = 0; } /* TODO */
+    | TOK_ENUM EnumBody { $$ = 0; } /* TODO */
+    | TOK_ENUM EnumTag TOK_COLON EnumBaseType EnumBody { $$ = 0; } /* TODO */
+    | TOK_ENUM TOK_COLON EnumBaseType EnumBody { $$ = 0; } /* TODO */
     ;
 
 EnumTag
-    : Identifier {}
+    : Identifier { $$ = 0; } /* TODO */
     ;
 
 EnumBaseType
-    : Type {}
+    : Type { $$ = 0; } /* TODO */
     ;
 
 EnumBody
-    : EmptyEnumBody {}
-    | EnumMembersBody {}
+    : EmptyEnumBody { $$ = 0; } /* TODO */
+    | EnumMembersBody { $$ = 0; } /* TODO */
     ;
 
 EmptyEnumBody
-    : TOK_SEMICOLON {}
+    : TOK_SEMICOLON { $$ = 0; } /* TODO */
     ;
 
 EnumMembersBody
-    : TOK_LEFT_BRACE EnumMembers TOK_RIGHT_BRACE {}
+    : TOK_LEFT_BRACE EnumMembers TOK_RIGHT_BRACE { $$ = 0; } /* TODO */
     ;
 
 EnumMembers
-    : EnumMember {}
-    | EnumMember TOK_COMMA {}
-    | EnumMember TOK_COMMA EnumMembers {}
+    : EnumMember { $$ = 0; } /* TODO */
+    | EnumMember TOK_COMMA { $$ = 0; } /* TODO */
+    | EnumMember TOK_COMMA EnumMembers { $$ = 0; } /* TODO */
     ;
 
 EnumMember
-    : Identifier {}
-    | Identifier TOK_ASSIGN AssignExpression {}
-    | Type Identifier TOK_ASSIGN AssignExpression {}
+    : Identifier { $$ = 0; } /* TODO */
+    | Identifier TOK_ASSIGN AssignExpression { $$ = 0; } /* TODO */
+    | Type Identifier TOK_ASSIGN AssignExpression { $$ = 0; } /* TODO */
     ;
 
 
@@ -1997,242 +2001,242 @@ FunctionBody
     ;
 
 InStatement
-    : TOK_IN BlockStatement {}
+    : TOK_IN BlockStatement { $$ = 0; } /* TODO */
     ;
 
 OutStatement
-    : TOK_OUT BlockStatement {}
-    | TOK_OUT TOK_LEFT_PAR TOK_IDENTIFIER TOK_RIGHT_PAR BlockStatement {}
+    : TOK_OUT BlockStatement { $$ = 0; } /* TODO */
+    | TOK_OUT TOK_LEFT_PAR TOK_IDENTIFIER TOK_RIGHT_PAR BlockStatement { $$ = 0; } /* TODO */
     ;
 
 BodyStatement
-    : TOK_BODY BlockStatement {}
+    : TOK_BODY BlockStatement { $$ = 0; } /* TODO */
     ;
 
 
 /* ***** Templates ***** */
 
 TemplateDeclaration
-    : TOK_TEMPLATE TemplateIdentifier TemplateParameters Constraintopt {}
-    | TOK_LEFT_BRACE DeclDefs TOK_RIGHT_BRACE {}
+    : TOK_TEMPLATE TemplateIdentifier TemplateParameters Constraintopt { $$ = 0; } /* TODO */
+    | TOK_LEFT_BRACE DeclDefs TOK_RIGHT_BRACE { $$ = 0; } /* TODO */
     ;
 
 TemplateIdentifier
-    : Identifier {}
+    : Identifier { $$ = 0; } /* TODO */
     ;
 
 TemplateParametersopt
-    : {}
-    | TemplateParameters {}
+    : { $$ = 0; } /* TODO */
+    | TemplateParameters { $$ = 0; } /* TODO */
     ;
 
 TemplateParameters
-    : TOK_LEFT_PAR TOK_RIGHT_PAR {}
-    TOK_LEFT_PAR TemplateParameterList TOK_RIGHT_PAR {}
+    : TOK_LEFT_PAR TOK_RIGHT_PAR { $$ = 0; } /* TODO */
+    | TOK_LEFT_PAR TemplateParameterList TOK_RIGHT_PAR { $$ = 0; } /* TODO */
     ;
 
 TemplateParameterList
-    : TemplateParameter {}
-    | TemplateParameter TOK_COMMA {}
-    | TemplateParameter TOK_COMMA TemplateParameterList {}
+    : TemplateParameter { $$ = 0; } /* TODO */
+    | TemplateParameter TOK_COMMA { $$ = 0; } /* TODO */
+    | TemplateParameter TOK_COMMA TemplateParameterList { $$ = 0; } /* TODO */
     ;
 
 TemplateParameter
-    : TemplateTypeParameter {}
-    | TemplateValueParameter {}
-    | TemplateAliasParameter {}
-    | TemplateTupleParameter {}
-    | TemplateThisParameter {}
+    : TemplateTypeParameter { $$ = 0; } /* TODO */
+    | TemplateValueParameter { $$ = 0; } /* TODO */
+    | TemplateAliasParameter { $$ = 0; } /* TODO */
+    | TemplateTupleParameter { $$ = 0; } /* TODO */
+    | TemplateThisParameter { $$ = 0; } /* TODO */
     ;
 
 TemplateInstance
-    : TemplateIdentifier TemplateArguments {}
+    : TemplateIdentifier TemplateArguments { $$ = 0; } /* TODO */
     ;
 
 TemplateArgumentsopt
-    : {}
-    | TemplateArguments {}
+    : { $$ = 0; } /* TODO */
+    | TemplateArguments { $$ = 0; } /* TODO */
     ;
 
 TemplateArguments
-    : TOK_EXCLAMATION TOK_LEFT_PAR TOK_RIGHT_PAR {}
-    | TOK_EXCLAMATION TOK_LEFT_PAR TemplateArgumentList TOK_RIGHT_PAR {}
-    | TOK_EXCLAMATION TemplateSingleArgument {}
+    : TOK_EXCLAMATION TOK_LEFT_PAR TOK_RIGHT_PAR { $$ = 0; } /* TODO */
+    | TOK_EXCLAMATION TOK_LEFT_PAR TemplateArgumentList TOK_RIGHT_PAR { $$ = 0; } /* TODO */
+    | TOK_EXCLAMATION TemplateSingleArgument { $$ = 0; } /* TODO */
     ;
 
 TemplateArgumentList
-    : TemplateArgument {}
-    | TemplateArgument TOK_COMMA {}
-    | TemplateArgument TOK_COMMA TemplateArgumentList {}
+    : TemplateArgument { $$ = 0; } /* TODO */
+    | TemplateArgument TOK_COMMA { $$ = 0; } /* TODO */
+    | TemplateArgument TOK_COMMA TemplateArgumentList { $$ = 0; } /* TODO */
     ;
 
 TemplateArgument
-    : Type {}
-    | AssignExpression {}
-    | Symbol {}
+    : Type { $$ = 0; } /* TODO */
+    | AssignExpression { $$ = 0; } /* TODO */
+    | Symbol { $$ = 0; } /* TODO */
     ;
 
 Symbol
-    : SymbolTail {}
-    | TOK_DOT SymbolTail {}
+    : SymbolTail { $$ = 0; } /* TODO */
+    | TOK_DOT SymbolTail { $$ = 0; } /* TODO */
     ;
 
 SymbolTail
-    : Identifier {}
-    | Identifier TOK_DOT SymbolTail {}
-    | TemplateInstance {}
-    | TemplateInstance TOK_DOT SymbolTail {}
+    : Identifier { $$ = 0; } /* TODO */
+    | Identifier TOK_DOT SymbolTail { $$ = 0; } /* TODO */
+    | TemplateInstance { $$ = 0; } /* TODO */
+    | TemplateInstance TOK_DOT SymbolTail { $$ = 0; } /* TODO */
     ;
 
 TemplateSingleArgument
-    : Identifier {}
-    | BasicTypeX {}
-    | TOK_CHAR_LITERAL {}
-    | TOK_STRING_LITERAL {}
-    | TOK_INT_CONSTANT {}
-    | TOK_REAL_CONSTANT {}
-    | TOK_TRUE {}
-    | TOK_FALSE {}
-    | TOK_NULL {}
-    | TOK_THIS {}
-    | TOK__FILE {}
-    | TOK__MODULE {}
-    | TOK__LINE {}
-    | TOK__FUNCTION {}
-    | TOK__PRETTY_FUNCTION {}
+    : Identifier { $$ = 0; } /* TODO */
+    | BasicTypeX { $$ = 0; } /* TODO */
+    | TOK_CHAR_LITERAL { $$ = 0; } /* TODO */
+    | TOK_STRING_LITERAL { $$ = 0; } /* TODO */
+    | TOK_INT_CONSTANT { $$ = 0; } /* TODO */
+    | TOK_REAL_CONSTANT { $$ = 0; } /* TODO */
+    | TOK_TRUE { $$ = 0; } /* TODO */
+    | TOK_FALSE { $$ = 0; } /* TODO */
+    | TOK_NULL { $$ = 0; } /* TODO */
+    | TOK_THIS { $$ = 0; } /* TODO */
+    | TOK__FILE { $$ = 0; } /* TODO */
+    | TOK__MODULE { $$ = 0; } /* TODO */
+    | TOK__LINE { $$ = 0; } /* TODO */
+    | TOK__FUNCTION { $$ = 0; } /* TODO */
+    | TOK__PRETTY_FUNCTION { $$ = 0; } /* TODO */
     ;
 
 TemplateTypeParameter
-    : Identifier {}
-    | Identifier TemplateTypeParameterSpecialization {}
-    | Identifier TemplateTypeParameterDefault {}
-    | Identifier TemplateTypeParameterSpecialization TemplateTypeParameterDefault {}
+    : Identifier { $$ = 0; } /* TODO */
+    | Identifier TemplateTypeParameterSpecialization { $$ = 0; } /* TODO */
+    | Identifier TemplateTypeParameterDefault { $$ = 0; } /* TODO */
+    | Identifier TemplateTypeParameterSpecialization TemplateTypeParameterDefault { $$ = 0; } /* TODO */
     ;
 
 TemplateTypeParameterSpecialization
-    : TOK_COLON Type {}
+    : TOK_COLON Type { $$ = 0; } /* TODO */
     ;
 
 TemplateTypeParameterDefault
-    : TOK_ASSIGN Type {}
+    : TOK_ASSIGN Type { $$ = 0; } /* TODO */
     ;
 
 TemplateThisParameter
-    : TOK_THIS TemplateTypeParameter {}
+    : TOK_THIS TemplateTypeParameter { $$ = 0; } /* TODO */
     ;
 
 TemplateValueParameter
-    : BasicType Declarator {}
-    | BasicType Declarator TemplateValueParameterSpecialization {}
-    | BasicType Declarator TemplateValueParameterDefault {}
-    | BasicType Declarator TemplateValueParameterSpecialization TemplateValueParameterDefault {}
+    : BasicType Declarator { $$ = 0; } /* TODO */
+    | BasicType Declarator TemplateValueParameterSpecialization { $$ = 0; } /* TODO */
+    | BasicType Declarator TemplateValueParameterDefault { $$ = 0; } /* TODO */
+    | BasicType Declarator TemplateValueParameterSpecialization TemplateValueParameterDefault { $$ = 0; } /* TODO */
     ;
 
 TemplateValueParameterSpecialization
-    : TOK_COLON ConditionalExpression {}
+    : TOK_COLON ConditionalExpression { $$ = 0; } /* TODO */
     ;
 
 TemplateValueParameterDefault
-    : TOK_ASSIGN TOK__FILE {}
-    | TOK_ASSIGN TOK__MODULE {}
-    | TOK_ASSIGN TOK__LINE {}
-    | TOK_ASSIGN TOK__FUNCTION {}
-    | TOK_ASSIGN TOK__PRETTY_FUNCTION {}
-    | TOK_ASSIGN AssignExpression {}
+    : TOK_ASSIGN TOK__FILE { $$ = 0; } /* TODO */
+    | TOK_ASSIGN TOK__MODULE { $$ = 0; } /* TODO */
+    | TOK_ASSIGN TOK__LINE { $$ = 0; } /* TODO */
+    | TOK_ASSIGN TOK__FUNCTION { $$ = 0; } /* TODO */
+    | TOK_ASSIGN TOK__PRETTY_FUNCTION { $$ = 0; } /* TODO */
+    | TOK_ASSIGN AssignExpression { $$ = 0; } /* TODO */
     ;
 
 TemplateAliasParameter
-    : TOK_ALIAS Identifier TemplateAliasParameterSpecializationopt TemplateAliasParameterDefaultopt {}
-    | TOK_ALIAS BasicType Declarator TemplateAliasParameterSpecializationopt TemplateAliasParameterDefaultopt {}
+    : TOK_ALIAS Identifier TemplateAliasParameterSpecializationopt TemplateAliasParameterDefaultopt { $$ = 0; } /* TODO */
+    | TOK_ALIAS BasicType Declarator TemplateAliasParameterSpecializationopt TemplateAliasParameterDefaultopt { $$ = 0; } /* TODO */
     ;
 
 TemplateAliasParameterSpecializationopt
-    : {}
-    | TemplateAliasParameterSpecialization {}
+    : { $$ = 0; } /* TODO */
+    | TemplateAliasParameterSpecialization { $$ = 0; } /* TODO */
     ;
 
 TemplateAliasParameterSpecialization
-    : TOK_COLON Type {}
-    | TOK_COLON ConditionalExpression {}
+    : TOK_COLON Type { $$ = 0; } /* TODO */
+    | TOK_COLON ConditionalExpression { $$ = 0; } /* TODO */
     ;
 
 TemplateAliasParameterDefaultopt
-    : {}
-    | TemplateAliasParameterDefault {}
+    : { $$ = 0; } /* TODO */
+    | TemplateAliasParameterDefault { $$ = 0; } /* TODO */
     ;
 
 TemplateAliasParameterDefault
-    : TOK_ASSIGN Type {}
-    | TOK_ASSIGN ConditionalExpression {}
+    : TOK_ASSIGN Type { $$ = 0; } /* TODO */
+    | TOK_ASSIGN ConditionalExpression { $$ = 0; } /* TODO */
     ;
 
 TemplateTupleParameter
-    : Identifier TOK_ELLIPSIS {}
+    : Identifier TOK_ELLIPSIS { $$ = 0; } /* TODO */
     ;
 
 TemplatedConstructor
-    : TOK_THIS TemplateParameters Parameters Constraintopt FunctionBody {}
+    : TOK_THIS TemplateParameters Parameters Constraintopt FunctionBody { $$ = 0; } /* TODO */
     ;
 
 ClassTemplateDeclaration
-    : TOK_CLASS Identifier TOK_LEFT_PAR TemplateParameterList TOK_RIGHT_PAR Constraintopt BaseClassListopt ClassBody {}
-    | TOK_CLASS Identifier TOK_LEFT_PAR TemplateParameterList TOK_RIGHT_PAR BaseClassListopt Constraintopt ClassBody {}
+    : TOK_CLASS Identifier TOK_LEFT_PAR TemplateParameterList TOK_RIGHT_PAR Constraintopt BaseClassListopt ClassBody { $$ = 0; } /* TODO */
+    | TOK_CLASS Identifier TOK_LEFT_PAR TemplateParameterList TOK_RIGHT_PAR BaseClassListopt Constraintopt ClassBody { $$ = 0; } /* TODO */
     ;
 
 StructTemplateDeclaration
-    : TOK_STRUCT Identifier TOK_LEFT_PAR TemplateParameterList TOK_RIGHT_PAR Constraintopt StructBody {}
+    : TOK_STRUCT Identifier TOK_LEFT_PAR TemplateParameterList TOK_RIGHT_PAR Constraintopt StructBody { $$ = 0; } /* TODO */
     ;
 
 UnionTemplateDeclaration
-    : TOK_UNION Identifier TOK_LEFT_PAR TemplateParameterList TOK_RIGHT_PAR Constraintopt StructBody {}
+    : TOK_UNION Identifier TOK_LEFT_PAR TemplateParameterList TOK_RIGHT_PAR Constraintopt StructBody { $$ = 0; } /* TODO */
     ;
 
 InterfaceTemplateDeclaration
-    : TOK_INTERFACE Identifier TOK_LEFT_PAR TemplateParameterList TOK_RIGHT_PAR Constraintopt BaseInterfaceListopt InterfaceBody {}
+    : TOK_INTERFACE Identifier TOK_LEFT_PAR TemplateParameterList TOK_RIGHT_PAR Constraintopt BaseInterfaceListopt InterfaceBody { $$ = 0; } /* TODO */
     ;
 
 Constraint
-    : TOK_IF TOK_LEFT_PAR ConstraintExpression TOK_RIGHT_PAR {}
+    : TOK_IF TOK_LEFT_PAR ConstraintExpression TOK_RIGHT_PAR { $$ = 0; } /* TODO */
     ;
 
 ConstraintExpression
-    : Expression {}
+    : Expression { $$ = 0; } /* TODO */
     ;
 
 /* ***** Template Mixins ***** */
 
 TemplateMixinDeclaration
-    : TOK_MIXIN TOK_TEMPLATE TemplateIdentifier TemplateParameters Constraintopt {}
-    | TOK_LEFT_BRACE DeclDefs TOK_RIGHT_BRACE {}
+    : TOK_MIXIN TOK_TEMPLATE TemplateIdentifier TemplateParameters Constraintopt { $$ = 0; } /* TODO */
+    | TOK_LEFT_BRACE DeclDefs TOK_RIGHT_BRACE { $$ = 0; } /* TODO */
     ;
 
 TemplateMixin
-    : TOK_MIXIN MixinTemplateName TemplateArgumentsopt MixinIdentifieropt TOK_SEMICOLON {}
+    : TOK_MIXIN MixinTemplateName TemplateArgumentsopt MixinIdentifieropt TOK_SEMICOLON { $$ = 0; } /* TODO */
     ;
 
 MixinTemplateName
-    : TOK_DOT QualifiedIdentifierList {}
-    | QualifiedIdentifierList {}
-    | Typeof TOK_DOT QualifiedIdentifierList {}
+    : TOK_DOT QualifiedIdentifierList { $$ = 0; } /* TODO */
+    | QualifiedIdentifierList { $$ = 0; } /* TODO */
+    | Typeof TOK_DOT QualifiedIdentifierList { $$ = 0; } /* TODO */
     ;
 
 QualifiedIdentifierList
-    : Identifier {}
-    | Identifier TOK_DOT QualifiedIdentifierList {}
-    | TemplateInstance TOK_DOT QualifiedIdentifierList {}
+    : Identifier { $$ = 0; } /* TODO */
+    | Identifier TOK_DOT QualifiedIdentifierList { $$ = 0; } /* TODO */
+    | TemplateInstance TOK_DOT QualifiedIdentifierList { $$ = 0; } /* TODO */
     ;
 
 MixinIdentifieropt
-    : {}
-    | MixinIdentifier {}
+    : { $$ = 0; } /* TODO */
+    | MixinIdentifier { $$ = 0; } /* TODO */
     ;
 
 MixinIdentifier
-    : Identifier {}
+    : Identifier { $$ = 0; } /* TODO */
     ;
 
 MixinDeclaration
-    : TOK_MIXIN TOK_LEFT_PAR AssignExpression TOK_RIGHT_PAR TOK_SEMICOLON {}
+    : TOK_MIXIN TOK_LEFT_PAR AssignExpression TOK_RIGHT_PAR TOK_SEMICOLON { $$ = 0; } /* TODO */
     ;
 
 
@@ -2247,7 +2251,7 @@ MixinDeclaration
 /* ***** Unit Tests ***** */
 
 UnitTest
-    : TOK_UNITTEST FunctionBody {}
+    : TOK_UNITTEST FunctionBody { $$ = 0; } /* TODO */
     ;
 
 /* ***** Inline Assembler ***** */

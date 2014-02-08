@@ -9,6 +9,7 @@
 
 enum IdentifierType {
     MODULE,
+    IMPORT,
     FUNCTION,
     CLASS,
     INTERFACE,
@@ -47,6 +48,10 @@ public:
         return m_childs;
     }
 
+    virtual const ChildsList& childs() const {
+        return m_childs;
+    }
+
     virtual void addChild(Node* child) {
         if (!child) return;
         child->m_parent = this;
@@ -60,6 +65,8 @@ public:
     virtual void setName(const std::string& name) {
         m_identifier = name;
     }
+
+    virtual std::string ToDebugString() const;
 
 protected:
 
@@ -110,7 +117,7 @@ public:
 class ImportNode: public Node
 {
 public:
-    ImportNode(const std::string& name = std::string()) : Node(MODULE, name) {}
+    ImportNode(const std::string& name = std::string()) : Node(IMPORT, name) {}
     virtual Node* clone() {
         return new ImportNode(*this);
     }
@@ -165,6 +172,21 @@ private:
     }
 
     NodeList parameters;
+};
+
+class DestructorNode : public Node
+{
+public:
+    DestructorNode() : Node(DESTRUCTOR, "") {}
+    virtual Node* clone() {
+        return new DestructorNode(*this);
+    }
+private:
+    virtual void addToParent(Node* parent) {
+        setName(parent->name());
+        Node::addToParent(parent);
+    }
+
 };
 
 class PrimitiveTypeNode : public Node
@@ -236,5 +258,7 @@ public:
     }
 
 };
+
+std::ostream& operator <<(std::ostream& os, const Node& node);
 
 #endif // __EXPRESSION_H__
