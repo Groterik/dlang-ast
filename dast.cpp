@@ -4,8 +4,16 @@
  */
 
 #include "dast.h"
-#include "memory"
 
+#include <memory>
+#include <cstdio>
+
+static std::string toString(int a)
+{
+    char buff[1024];
+    snprintf(buff, 1024, "%d", a);
+    return buff;
+}
 
 static void generateTree(std::ostream& os, const Node& node, int depth = 0) {
     for (int i = 0; i < depth; ++i) os << '-';
@@ -60,5 +68,43 @@ std::string Node::ToDebugString() const
     res += typeStr;
     res += "]";
     res += m_identifier;
+    if (!pos.isNull()) {
+        res+="(";
+        res+=toString(pos.first());
+        res+="-";
+        res+=toString(pos.last());
+        res+=")";
+    }
     return res;
+}
+
+
+std::string PrimitiveTypeNode::getPrimitiveTypeName(PrimitiveTypeNode::Type type)
+{
+    switch (type)
+    {
+    case BOOL : return "bool";
+    case BYTE : return "byte";
+    case UBYTE : return "ubyte";
+    case SHORT : return "short";
+    case USHORT : return "ushort";
+    case INT : return "int";
+    case UINT : return "uint";
+    case LONG : return "long";
+    case ULONG : return "ulong";
+    case CHAR : return "char";
+    case WCHAR : return "wchar";
+    case DCHAR : return "dchar";
+    case FLOAT : return "float";
+    case DOUBLE : return "double";
+    case REAL : return "real";
+    case IFLOAT : return "ifloat";
+    case IDOUBLE : return "idouble";
+    case IREAL : return "ireal";
+    case CFLOAT : return "cfloat";
+    case CDOUBLE : return "cdouble";
+    case CREAL : return "creal";
+    case VOID : return "void";
+    }
+    return "unknown";
 }

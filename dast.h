@@ -24,6 +24,18 @@ enum IdentifierType {
     OTHER
 };
 
+class Lines {
+public:
+    Lines(int first = -1, int last = -1) : m_first(first), m_last(last) {}
+    bool isNull() const { return m_first<0 || m_last <0; }
+    int first() const { return m_first; }
+    int last() const { return m_last; }
+private:
+    int m_first;
+    int m_last;
+    friend class Node;
+};
+
 class Node
 {
 public:
@@ -38,8 +50,12 @@ public:
     typedef std::list<Node*> ChildsList;
 
     void setPosition(int first, int last) {
-        pos.first = first;
-        pos.last = last;
+        pos.m_first = first;
+        pos.m_last = last;
+    }
+
+    const Lines& getPosition() const {
+        return pos;
     }
 
     virtual Node* clone() = 0;
@@ -79,10 +95,7 @@ private:
     IdentifierType m_type;
     std::string m_identifier;
     Node* m_parent;
-    struct Lines {
-        int first;
-        int last;
-    } pos;
+    Lines pos;
 
     ChildsList m_childs;
 };
@@ -134,7 +147,8 @@ public:
 
 class DeclarationNode: public Node {
 public:
-    DeclarationNode(Node* type, Node* declarator) : Node(TYPE, ""), m_type(type), m_declarator(declarator), value(0) {}
+    DeclarationNode(Node* type, Node* declarator)
+        : Node(TYPE, type->name() + " " + (declarator?declarator->name():std::string())), m_type(type), m_declarator(declarator), value(0) {}
     void setValue(Node* value) {
         this->value = value;
     }
@@ -217,13 +231,14 @@ public:
         VOID
     };
 
-    PrimitiveTypeNode(Type type) : Node(PRIMITIVE_TYPE, ""), m_type(type) {}
+    PrimitiveTypeNode(Type type) : Node(PRIMITIVE_TYPE, getPrimitiveTypeName(type)), m_type(type) {}
 
     virtual Node* clone() {
         return new PrimitiveTypeNode(*this);
     }
 
 private:
+    static std::string getPrimitiveTypeName(Type type);
     Type m_type;
 
 };

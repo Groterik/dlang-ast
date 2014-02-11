@@ -564,7 +564,7 @@ DeclDef
     | ClassDeclaration { $$ = $1; }
     | InterfaceDeclaration { $$ = 0; } /* TODO */
     | AggregateDeclaration { $$ = 0; } /* TODO */
-    | Declaration { $$ = 0; } /* TODO */
+    | Declaration { $$ = $1; }
     | Constructor { $$ = $1; }
     | Destructor { $$ = $1; }
     | UnitTest { $$ = 0; } /* TODO */
@@ -1118,9 +1118,15 @@ OrOrExpression
     ;
 
 AndAndExpression
-    : OrExpression { $$ = 0; } /* TODO */
+/*
+ambiguous
+OrExpression->XorExpression->AndExpression->ShiftExpression
+and
+CmpExpression->ShiftExpression
+*/
+    : OrExpression %dprec 2 { $$ = 0; } /* TODO */
     | AndAndExpression TOK_AND OrExpression { $$ = 0; } /* TODO */
-    | CmpExpression { $$ = 0; } /* TODO */
+    | CmpExpression %dprec 1 { $$ = 0; } /*TODO */
     | AndAndExpression TOK_AND CmpExpression { $$ = 0; } /* TODO */
     ;
 
@@ -1527,7 +1533,7 @@ BlockStatement
 
 StatementList
     : Statement { $$ = new NodeList; $$->addChild($1); }
-    | Statement StatementList { $$ = $2; $$->addChild($2); }
+    | Statement StatementList { $$ = $2; $$->addChild($1); }
     ;
 
 ExpressionStatement
@@ -1992,7 +1998,7 @@ EnumMember
 /* ***** Functions ***** */
 
 FunctionBody
-    : BlockStatement { $$ = 0;} /* TODO */
+    : BlockStatement { $$ = $1;} /* TODO */
     | BodyStatement { $$ = 0; } /* TODO */
     | InStatement BodyStatement { $$ = 0;} /* TODO */
     | OutStatement BodyStatement { $$ = 0; } /* TODO */
