@@ -30,20 +30,6 @@ std::ostream& operator <<(std::ostream& os, const Node& node)
     return os;
 }
 
-void DeclarationTypedList::addToParent(Node *parent) {
-    for (ChildsList::iterator it = childs().begin(); it != childs().end(); ++it) {
-        std::auto_ptr<Node> ctype(m_type->clone());
-        std::auto_ptr<DeclarationNode> decl(new DeclarationNode(ctype.get(), *it));
-        parent->addChild(decl.get());
-        decl.release();
-        ctype.release();
-    }
-    delete m_type;
-    delete this;
-}
-
-
-
 std::string Node::ToDebugString() const
 {
     const char* typeStr = "UnknownType";
@@ -107,4 +93,18 @@ std::string PrimitiveTypeNode::getPrimitiveTypeName(PrimitiveTypeNode::Type type
     case VOID : return "void";
     }
     return "unknown";
+}
+
+
+std::string DeclarationNode::ToDebugString() const
+{
+    std::string res = "[Decl]" + (m_type?m_type->name():std::string()) + " " + name();
+    return res;
+}
+
+
+void DeclarationTypedList::addChild(Node *child)
+{
+    if (child) child->accept(*this);
+    NodeList::addChild(child);
 }

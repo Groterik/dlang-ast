@@ -21,6 +21,7 @@ enum IdentifierType {
     DESTRUCTOR,
     PRIMITIVE_TYPE,
     TYPE,
+    DECL,
     OTHER
 };
 
@@ -36,7 +37,42 @@ private:
     friend class Node;
 };
 
-class Node
+class DeclarationNode;
+class PrimitiveTypeNode;
+class ModuleNode;
+class ImportNode;
+class ClassNode;
+class ConstructorNode;
+class DestructorNode;
+class NodeList;
+class IdentifierNode;
+class FunctionNode;
+
+
+class AstVisitor {
+public:
+    virtual void visit(DeclarationNode&) = 0;
+    virtual void visit(PrimitiveTypeNode&) = 0;
+    virtual void visit(ModuleNode&) = 0;
+    virtual void visit(ImportNode&) = 0;
+    virtual void visit(ClassNode&) = 0;
+    virtual void visit(ConstructorNode&) = 0;
+    virtual void visit(DestructorNode&) = 0;
+    virtual void visit(IdentifierNode&) = 0;
+    virtual void visit(NodeList&) = 0;
+    virtual void visit(FunctionNode&) = 0;
+    virtual ~AstVisitor() {}
+};
+
+class AstVisitable {
+public:
+    virtual void accept(AstVisitor&) = 0;
+    virtual ~AstVisitable() {}
+};
+
+#define MAKE_VISITABLE virtual void accept(AstVisitor& visitor) { visitor.visit(*this); }
+
+class Node : public AstVisitable
 {
 public:
     Node(IdentifierType type, const std::string& identifier, Node* parent = 0, const std::string& hint = std::string())
@@ -103,6 +139,8 @@ private:
 class NodeList : public Node
 {
 public:
+    MAKE_VISITABLE
+
     explicit NodeList(const std::string& name = std::string()) : Node(LIST, name) {}
 
     Node* clone() {
@@ -121,6 +159,7 @@ private:
 class ModuleNode: public Node
 {
 public:
+    MAKE_VISITABLE
     ModuleNode(const std::string& name = std::string()) : Node(MODULE, name) {}
     virtual Node* clone() {
         return new ModuleNode(*this);
@@ -130,6 +169,7 @@ public:
 class ImportNode: public Node
 {
 public:
+    MAKE_VISITABLE
     ImportNode(const std::string& name = std::string()) : Node(IMPORT, name) {}
     virtual Node* clone() {
         return new ImportNode(*this);
@@ -139,6 +179,7 @@ public:
 class ClassNode: public Node
 {
 public:
+    MAKE_VISITABLE
     ClassNode(const std::string& name = std::string()) : Node(CLASS, name) {}
     virtual Node* clone() {
         return new ClassNode(*this);
@@ -147,25 +188,61 @@ public:
 
 class DeclarationNode: public Node {
 public:
-    DeclarationNode(Node* type, Node* declarator)
-        : Node(TYPE, type->name() + " " + (declarator?declarator->name():std::string())), m_type(type), m_declarator(declarator), value(0) {}
+    MAKE_VISITABLE
+    DeclarationNode(Node* type, const std::string& identifier)
+        : Node(DECL, identifier), m_type(type), value(0) {}
     void setValue(Node* value) {
         this->value = value;
+    }
+
+    void setType(Node* type) {
+        this->m_type = type;
     }
 
     virtual Node* clone() {
         return new DeclarationNode(*this);
     }
 
+    virtual std::string ToDebugString() const;
+
 private:
     Node* m_type;
-    Node* m_declarator;
+    Node* qualifiers;
     Node* value;
+};
+
+
+class FunctionNode : public Node
+{
+public:
+    MAKE_VISITABLE
+    FunctionNode(const std::string& name, Node* list) : Node(FUNCTION, name) {
+        if (!list) return;
+        if (list->childs().empty()) return;
+        for (ChildsList::iterator it = list->childs().begin(); it != list->childs().end(); ++it) {
+            parameters.addChild(*it);
+        }
+        addChild(list);
+    }
+
+    void setReturnType(Node* type)
+    {
+        this->returnType = type;
+    }
+
+    virtual Node* clone() {
+        return new FunctionNode(*this);
+    }
+
+private:
+    NodeList parameters;
+    Node* returnType;
 };
 
 class ConstructorNode: public Node
 {
 public:
+    MAKE_VISITABLE
     ConstructorNode(Node* list) : Node(CONSTRUCTOR, "") {
         if (!list) return;
         if (list->childs().empty()) return;
@@ -191,6 +268,7 @@ private:
 class DestructorNode : public Node
 {
 public:
+    MAKE_VISITABLE
     DestructorNode() : Node(DESTRUCTOR, "") {}
     virtual Node* clone() {
         return new DestructorNode(*this);
@@ -206,6 +284,7 @@ private:
 class PrimitiveTypeNode : public Node
 {
 public:
+    MAKE_VISITABLE
     enum Type {
         BOOL,
         BYTE,
@@ -243,19 +322,39 @@ private:
 
 };
 
-class DeclarationTypedList : public NodeList {
+class BasicTypeVisitor : public AstVisitor {
 public:
+    virtual void visit(DeclarationNode& decl)
+    {
+        decl.setType(m_type);
+    }
+
+    virtual void visit(PrimitiveTypeNode&) {}
+    virtual void visit(ModuleNode&) {}
+    virtual void visit(ImportNode&) {}
+    virtual void visit(ClassNode&) {}
+    virtual void visit(ConstructorNode&) {}
+    virtual void visit(DestructorNode&) {}
+    virtual void visit(IdentifierNode&) {}
+    virtual void visit(NodeList&) {}
+    virtual void visit(FunctionNode& func)
+    {
+        func.setReturnType(m_type);
+    }
+};
+
+class DeclarationTypedList : public NodeList, public AstVisitor {
+public:
+
+
     DeclarationTypedList(Node* type) : m_type(type) {}
     virtual Node* clone() {
         return new DeclarationTypedList(*this);
     }
 
-    virtual void addChild(Node *child) {
-        NodeList::addChild(child);
-    }
+    virtual void addChild(Node* child);
 
 private:
-    virtual void addToParent(Node *parent);
     Node* m_type;
 };
 
@@ -263,6 +362,7 @@ private:
 class IdentifierNode : public Node
 {
 public:
+    MAKE_VISITABLE
     IdentifierNode(const std::string& name) : Node(VARIABLE, name) {}
     virtual void addChild(Node* child) {
         throw std::runtime_error("Identifier has no childs");
