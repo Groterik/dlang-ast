@@ -107,7 +107,8 @@ FunctionNode::FunctionNode(const std::string &name, Node *list)
 
 void FunctionNode::setDefinition(Node *scopeList)
 {
-
+    this->setDefinitionPosition(scopeList->getPosition());
+    this->addChild(scopeList);
 }
 
 void FunctionNode::setReturnType(Node *type)
@@ -212,7 +213,7 @@ void DebugPrintVisitor::generateTree(Node &node)
     ++depth;
     for (auto& child : node.childs())
     {
-        generateTree(*child);
+        if (child) generateTree(*child);
     }
     --depth;
 }

@@ -302,30 +302,15 @@ private:
     Node* m_type;
 };
 
-class ConstructorNode: public Node
+class ConstructorNode: public FunctionNode
 {
 public:
     MAKE_VISITABLE
-    ConstructorNode(Node* list) : Node(CONSTRUCTOR, "") {
-        if (!list) return;
-        if (list->childs().empty()) return;
-        for (ChildsList::iterator it = list->childs().begin(); it != list->childs().end(); ++it) {
-            parameters.addChild(*it);
-        }
-        addChild(list);
-    }
+    ConstructorNode(Node* list) : FunctionNode("this", list) {}
 
     virtual Node* clone() {
         return new ConstructorNode(*this);
     }
-
-private:
-    virtual void addToParent(Node* parent) {
-        setName(parent->name());
-        Node::addToParent(parent);
-    }
-
-    NodeList parameters;
 };
 
 class DestructorNode : public Node

@@ -7,8 +7,8 @@
 #define YYDEBUG 1
 
 int yyerror(YYLTYPE* loc, ModuleNode **mainnode, yyscan_t scanner, const char *msg) {
-    std::cout << "Error:" << loc->first_line << ": " << msg << std::endl;
-    exit(1);
+    std::cerr << "Error:" << loc->first_line << ": " << msg << std::endl;
+    //exit(1);
 }
 
 %}
@@ -537,13 +537,12 @@ typedef void* yyscan_t;
 
 input
     : Module { *mainnode = $1; }
-    | error { yyerrok; }
     ;
 
 /* ***** Modules ***** */
 
 Module
-    : ModuleDeclaration DeclDefsopt { $$ = new ModuleNode($1->name()); delete $1; $$->addChild($2);}
+    : ModuleDeclaration DeclDefsopt { $$ = new ModuleNode($1->name()); delete $1; $$->addChild($2); $$->setPosition(@1.first_line, @1.last_line); }
     | DeclDefs { $$ = new ModuleNode(); if ($1) $$->addChild($1); }
     ;
 
@@ -581,6 +580,7 @@ DeclDef
     | TemplateMixin { $$ = 0; } /* TODO */
     | MixinDeclaration { $$ = 0; } /* TODO */
     | TOK_SEMICOLON { $$ = 0; } /* TODO */
+    | error { yyerrok; $$ = 0;}
     ;
 
 
@@ -612,9 +612,9 @@ ImportDeclaration
     ;
 
 ImportList
-    : Import { $$ = new NodeList; $$->addChild($1);  }
+    : Import { $$ = new NodeList; $1->setPosition(@1.first_line, @1.last_line); $$->addChild($1);  }
     | ImportBindings { }
-    | Import TOK_COMMA ImportList { $3->addChild($1); $$ = $3; }
+    | Import TOK_COMMA ImportList { $1->setPosition(@1.first_line, @1.last_line); $3->addChild($1); $$ = $3; }
     ;
 
 Import
@@ -623,21 +623,21 @@ Import
     ;
 
 ImportBindings
-    : Import TOK_COLON ImportBindList { printf(" importbindings "); }
+    : Import TOK_COLON ImportBindList { TRACE; }
     ;
 
 ImportBindList
-    : ImportBind { printf(" importbindlist "); }
-    | ImportBind TOK_COMMA ImportBindList { printf(" importbindlist2 "); }
+    : ImportBind { TRACE; }
+    | ImportBind TOK_COMMA ImportBindList { TRACE; }
     ;
 
 ImportBind
-    : TOK_IDENTIFIER { printf(" importbind:%s ", $1); }
-    | TOK_IDENTIFIER TOK_ASSIGN TOK_IDENTIFIER { printf(" importbind:%s=%s", $1, $3); }
+    : TOK_IDENTIFIER { TRACE; }
+    | TOK_IDENTIFIER TOK_ASSIGN TOK_IDENTIFIER { TRACE; }
     ;
 
 ModuleAliasIdentifier
-    : TOK_IDENTIFIER { printf(" modalias:%s ", $1); }
+    : TOK_IDENTIFIER { TRACE; }
     ;
 
 /* ***** Declarations ***** */
@@ -649,13 +649,13 @@ Declaration
     ;
 
 AliasDeclaration
-    : TOK_ALIAS BasicType Declarator { printf(" aliasdecl "); }
-    | TOK_ALIAS AliasInitializerList { printf(" aliasdecl "); }
+    : TOK_ALIAS BasicType Declarator { TRACE; }
+    | TOK_ALIAS AliasInitializerList { TRACE; }
     ;
 
 AliasInitializerList
-    : AliasInitializer { printf(" aliasinitializer "); }
-    | AliasInitializer TOK_COMMA AliasInitializerList { printf(" aliasinitialize "); }
+    : AliasInitializer { TRACE; }
+    | AliasInitializer TOK_COMMA AliasInitializerList { TRACE; }
     ;
 
 AliasInitializer
@@ -753,7 +753,7 @@ BasicType2
 
 Declarator
     : BasicType2opt TOK_LEFT_PAR Declarator TOK_RIGHT_PAR DeclaratorSuffixesopt { $$ = $3; }
-    | BasicType2opt Identifier DeclaratorSuffixesopt { if ($3 == 0) $$ = new VariableNode($2->name(), 0); else $$ = new FunctionNode($2->name(), $3);}
+    | BasicType2opt Identifier DeclaratorSuffixesopt { if ($3 == 0) $$ = new VariableNode($2->name(), 0); else $$ = new FunctionNode($2->name(), $3); $$->setPosition(@$.first_line, @$.last_line); }
     ;
 
 DeclaratorSuffixesopt
@@ -852,10 +852,10 @@ ParameterList
     ;
 
 Parameter
-    : InOutopt BasicType Declarator { $$ = new VariableNode($3->name(), $2); }
+    : InOutopt BasicType Declarator { $$ = new VariableNode($3->name(), $2); $$->setPosition(@$.first_line, @$.last_line); }
     | InOutopt BasicType Declarator TOK_ELLIPSIS { $$ = new VariableNode($3->name(), $2); }
     | InOutopt BasicType Declarator TOK_ASSIGN DefaultInitializerExpression { $$ = new VariableNode($3->name(), $2); }
-    | InOutopt Type { $$ = new VariableNode(std::string(), $2); }
+    | InOutopt Type { $$ = new VariableNode(std::string(), $2); $$->setPosition(@$.first_line, @$.last_line);}
     | InOutopt Type TOK_ELLIPSIS { $$ = 0; } /* TODO */
     ;
 
@@ -1533,8 +1533,8 @@ LabeledStatement
     ;
 
 BlockStatement
-    : TOK_LEFT_BRACE TOK_RIGHT_BRACE { $$ = 0; }
-    | TOK_LEFT_BRACE StatementList TOK_RIGHT_BRACE { $$ = $2; }
+    : TOK_LEFT_BRACE TOK_RIGHT_BRACE { $$ = new NodeList; $$->setPosition(@1.first_line, @2.last_line); }
+    | TOK_LEFT_BRACE StatementList TOK_RIGHT_BRACE { $$ = $2; $$->setPosition(@1.first_line, @3.last_line); }
     ;
 
 StatementList
@@ -1825,10 +1825,11 @@ StructPostblit
     ;
 
 
-/* ***** Classes ***** */
+/* ***** Classes ***** http://dlang.org/class.html */
 
 ClassDeclaration
-    : TOK_CLASS Identifier BaseClassListopt ClassBody { $$ = new ClassNode($2->name()); delete $2; $$->addChild($4); $$->setPosition(@4.first_line, @4.last_line);}
+    : TOK_CLASS Identifier TOK_SEMICOLON { $$ = 0; } /* TODO */
+    | TOK_CLASS Identifier BaseClassListopt ClassBody { $$ = new ClassNode($2->name()); delete $2; $$->addChild($4); $$->setPosition(@4.first_line, @4.last_line);}
     | ClassTemplateDeclaration { $$ = $1; }
     ;
 
@@ -1884,7 +1885,8 @@ ClassBodyDeclaration
     ;
 
 Constructor
-    : TOK_THIS Parameters FunctionBody { $$ = new ConstructorNode($2); $$->addChild($3); $$->setPosition(@3.first_line, @3.last_line); }
+    : TOK_THIS Parameters MemberFunctionAttributesopt TOK_SEMICOLON { $$ = new ConstructorNode($2); $$->setPosition(@1.first_line, @1.last_line); }
+    | TOK_THIS Parameters FunctionBody { auto res = new ConstructorNode($2); res->setDefinition($3); res->setPosition(@3.first_line, @3.last_line); $$ = res; }
     | TemplatedConstructor {$$ = 0;} /* TODO */
     ;
 

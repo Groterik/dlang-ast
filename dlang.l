@@ -26,11 +26,22 @@ IS			(u|U|l|L)*
 LP                      "{"
 RP                      "}"
 SM                      ";"
+CM                      "//"
 
 
 WS          [ \r\n\t]*
 
+%s IN_COMMENT
+
 %%
+
+<INITIAL>{
+"/*"                     { BEGIN(IN_COMMENT); }
+}
+<IN_COMMENT>{
+"*/"                     { BEGIN(INITIAL); }
+.*                       {}
+}
 
 "abstact"               { return(TOK_ABSTRACT); }
 "alias"                 { return(TOK_ALIAS); }
@@ -302,9 +313,8 @@ L?'(\\.|[^\\'])+'	{ sscanf(yytext, "%d", &yylval->ivalue); return(TOK_INT_CONSTA
 
 
 [ \t\v\n\f]		{ }
+{CM}[^\n]*              { /* ignore comments */ }
 .			{ /* ignore bad characters */ }
-"//[^\n]*"              { /* ignore comments */ }
-
 
 %%
 
@@ -327,6 +337,8 @@ cloop:
                 putchar(c1);
 }*/
 
+
+
 int yyerror(const char *msg) {
-    std::cerr << "Error:" << msg; return 0;
+    std::cerr << "FlexError:" << msg; return 0;
 }

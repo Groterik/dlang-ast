@@ -68,6 +68,11 @@ int main(void)
 
     ModuleNode* e;
     e = getAST(str.c_str());
+    if (!e)
+    {
+        std::cerr << "MainError" << std::endl;
+        exit(1);
+    }
 
     std::cout << *e << std::endl;
 
