@@ -37,7 +37,6 @@ private:
     friend class Node;
 };
 
-class DeclarationNode;
 class PrimitiveTypeNode;
 class ModuleNode;
 class ImportNode;
@@ -47,11 +46,12 @@ class DestructorNode;
 class NodeList;
 class IdentifierNode;
 class FunctionNode;
+class VariableNode;
 
 
-class AstVisitor {
+class AstVisitor
+{
 public:
-    virtual void visit(DeclarationNode&) = 0;
     virtual void visit(PrimitiveTypeNode&) = 0;
     virtual void visit(ModuleNode&) = 0;
     virtual void visit(ImportNode&) = 0;
@@ -61,10 +61,92 @@ public:
     virtual void visit(IdentifierNode&) = 0;
     virtual void visit(NodeList&) = 0;
     virtual void visit(FunctionNode&) = 0;
+    virtual void visit(VariableNode&) = 0;
     virtual ~AstVisitor() {}
 };
 
-class AstVisitable {
+class ThrowVisitor : public AstVisitor
+{
+    virtual void visit(PrimitiveTypeNode&)
+    {
+        throw std::runtime_error("List visitor can visit only lists");
+    }
+
+    virtual void visit(ModuleNode&)
+    {
+        throw std::runtime_error("List visitor can visit only lists");
+    }
+
+    virtual void visit(ImportNode&)
+    {
+        throw std::runtime_error("List visitor can visit only lists");
+    }
+
+    virtual void visit(ClassNode&)
+    {
+        throw std::runtime_error("List visitor can visit only lists");
+    }
+
+    virtual void visit(ConstructorNode&)
+    {
+        throw std::runtime_error("List visitor can visit only lists");
+    }
+
+    virtual void visit(DestructorNode&)
+    {
+        throw std::runtime_error("List visitor can visit only lists");
+    }
+
+    virtual void visit(IdentifierNode&)
+    {
+        throw std::runtime_error("List visitor can visit only lists");
+    }
+
+    virtual void visit(NodeList&)
+    {
+        throw std::runtime_error("List visitor can visit only lists");
+    }
+
+    virtual void visit(FunctionNode&)
+    {
+        throw std::runtime_error("List visitor can visit only lists");
+    }
+
+    virtual void visit(VariableNode&)
+    {
+        throw std::runtime_error("List visitor can visit only lists");
+    }
+};
+
+class Node;
+
+class DebugPrintVisitor : public AstVisitor
+{
+public:
+    explicit DebugPrintVisitor(std::ostream& os = std::cout, int step = 1, char indentChar = ' ')
+        : depth(0), step(step), indentChar(indentChar), os(os) {}
+    virtual void visit(PrimitiveTypeNode&);
+    virtual void visit(ModuleNode&);
+    virtual void visit(ImportNode&);
+    virtual void visit(ClassNode&);
+    virtual void visit(ConstructorNode&);
+    virtual void visit(DestructorNode&);
+    virtual void visit(IdentifierNode&);
+    virtual void visit(NodeList&);
+    virtual void visit(FunctionNode&);
+    virtual void visit(VariableNode&);
+
+    void generateTree(Node &node);
+
+private:
+    int depth;
+    int step;
+    char indentChar;
+    std::ostream& os;
+};
+
+class AstVisitable
+{
 public:
     virtual void accept(AstVisitor&) = 0;
     virtual ~AstVisitable() {}
@@ -85,13 +167,12 @@ public:
     }
     typedef std::list<Node*> ChildsList;
 
-    void setPosition(int first, int last) {
-        pos.m_first = first;
-        pos.m_last = last;
-    }
+    void setPosition(int first, int last);
+
+    void setPosition(const Lines& lines);
 
     const Lines& getPosition() const {
-        return pos;
+        return m_pos;
     }
 
     virtual Node* clone() = 0;
@@ -118,8 +199,6 @@ public:
         m_identifier = name;
     }
 
-    virtual std::string ToDebugString() const;
-
 protected:
 
     virtual void addToParent(Node* parent) {
@@ -131,7 +210,7 @@ private:
     IdentifierType m_type;
     std::string m_identifier;
     Node* m_parent;
-    Lines pos;
+    Lines m_pos;
 
     ChildsList m_childs;
 };
@@ -154,6 +233,18 @@ private:
         }
         delete this;
     }
+};
+
+class WithDefinitionNode : public Node
+{
+public:
+    WithDefinitionNode(IdentifierType type, const std::string& identifier, Node* parent = 0, const std::string& hint = std::string())
+        : Node(type, identifier, parent, hint) {}
+    void setDefinitionPosition(const Lines& lines);
+    void setDefinitionPosition(int first, int last);
+    const Lines& getDefinitionPosition() const;
+private:
+    Lines m_definition_pos;
 };
 
 class ModuleNode: public Node
@@ -186,57 +277,29 @@ public:
     }
 };
 
-class DeclarationNode: public Node {
-public:
-    MAKE_VISITABLE
-    DeclarationNode(Node* type, const std::string& identifier)
-        : Node(DECL, identifier), m_type(type), value(0) {}
-    void setValue(Node* value) {
-        this->value = value;
-    }
 
-    void setType(Node* type) {
-        this->m_type = type;
-    }
-
-    virtual Node* clone() {
-        return new DeclarationNode(*this);
-    }
-
-    virtual std::string ToDebugString() const;
-
-private:
-    Node* m_type;
-    Node* qualifiers;
-    Node* value;
-};
-
-
-class FunctionNode : public Node
+class FunctionNode : public WithDefinitionNode
 {
 public:
     MAKE_VISITABLE
-    FunctionNode(const std::string& name, Node* list) : Node(FUNCTION, name) {
-        if (!list) return;
-        if (list->childs().empty()) return;
-        for (ChildsList::iterator it = list->childs().begin(); it != list->childs().end(); ++it) {
-            parameters.addChild(*it);
-        }
-        addChild(list);
-    }
-
-    void setReturnType(Node* type)
-    {
-        this->returnType = type;
-    }
-
-    virtual Node* clone() {
-        return new FunctionNode(*this);
-    }
-
+    FunctionNode(const std::string& name, Node* list);
+    void setDefinition(Node* scopeList);
+    void setReturnType(Node* type);
+    virtual Node* clone();
 private:
     NodeList parameters;
     Node* returnType;
+};
+
+class VariableNode : public Node
+{
+public:
+    MAKE_VISITABLE
+    VariableNode(const std::string& name, Node* type);
+    void setType(Node* type);
+    virtual VariableNode* clone();
+private:
+    Node* m_type;
 };
 
 class ConstructorNode: public Node
@@ -316,43 +379,39 @@ public:
         return new PrimitiveTypeNode(*this);
     }
 
-private:
+    Type getPrimitiveType() const
+    {
+        return m_type;
+    }
+
     static std::string getPrimitiveTypeName(Type type);
+
+private:
     Type m_type;
 
 };
 
-class BasicTypeVisitor : public AstVisitor {
+class BasicTypeVisitor : public ThrowVisitor {
 public:
-    virtual void visit(DeclarationNode& decl)
+    BasicTypeVisitor(Node* type) : m_type(type) {}
+
+    virtual void visit(NodeList& list)
     {
-        decl.setType(m_type);
+        for (auto& node : list.childs())
+        {
+            node->accept(*this);
+        }
     }
 
-    virtual void visit(PrimitiveTypeNode&) {}
-    virtual void visit(ModuleNode&) {}
-    virtual void visit(ImportNode&) {}
-    virtual void visit(ClassNode&) {}
-    virtual void visit(ConstructorNode&) {}
-    virtual void visit(DestructorNode&) {}
-    virtual void visit(IdentifierNode&) {}
-    virtual void visit(NodeList&) {}
     virtual void visit(FunctionNode& func)
     {
         func.setReturnType(m_type);
     }
-};
 
-class DeclarationTypedList : public NodeList, public AstVisitor {
-public:
-
-
-    DeclarationTypedList(Node* type) : m_type(type) {}
-    virtual Node* clone() {
-        return new DeclarationTypedList(*this);
+    virtual void visit(VariableNode& var)
+    {
+        var.setType(m_type);
     }
-
-    virtual void addChild(Node* child);
 
 private:
     Node* m_type;
@@ -374,6 +433,6 @@ public:
 
 };
 
-std::ostream& operator <<(std::ostream& os, const Node& node);
+std::ostream& operator <<(std::ostream& os, Node& node);
 
 #endif // __EXPRESSION_H__

@@ -64,6 +64,8 @@ int main(void)
 
     getFileContents(str, "test.d");
 
+//    yydebug = 1;
+
     ModuleNode* e;
     e = getAST(str.c_str());
 

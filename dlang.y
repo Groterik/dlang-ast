@@ -41,7 +41,6 @@ typedef void* yyscan_t;
     const char* str;
     Node *node;
     ModuleNode* module;
-    DeclarationNode* decl;
 }
 
 %left '+' TOK_PLUS
@@ -669,8 +668,14 @@ AliasThisDeclaration
 
 Decl
     : StorageClasses Decl { $$ = $2; }
-    | BasicType Declarators TOK_SEMICOLON { $$ = new DeclarationTypedList($1); $$->addChild($2); }
-    | BasicType Declarator FunctionBody { $$ = new DeclarationTypedList($1); $$->addChild($2); $2->addChild($3); }
+    | BasicType Declarators TOK_SEMICOLON { $$ = $2; BasicTypeVisitor v($1); $2->accept(v); }
+    | BasicType Declarator FunctionBody
+        {
+            FunctionNode* function = new FunctionNode($2->name(), $2);
+            function->setDefinition($3);
+            function->setReturnType($1);
+            $$ = function;
+        }
     | AutoDeclaration { $$ = 0; } /* TODO */
     ;
 
@@ -748,24 +753,17 @@ BasicType2
 
 Declarator
     : BasicType2opt TOK_LEFT_PAR Declarator TOK_RIGHT_PAR DeclaratorSuffixesopt { $$ = $3; }
-    | BasicType2opt Identifier DeclaratorSuffixesopt {
-            if ($3 == 0) $$ = new DeclarationNode(0, $2->name());
-            else {
-                $$ = $3;
-                $$->setName($2->name());
-                delete $2;
-                }
-            }
+    | BasicType2opt Identifier DeclaratorSuffixesopt { if ($3 == 0) $$ = new VariableNode($2->name(), 0); else $$ = new FunctionNode($2->name(), $3);}
     ;
 
 DeclaratorSuffixesopt
-    : { $$ = 0; } /* TODO */
-    | DeclaratorSuffixes { $$ = 0; } /* TODO */
+    : { $$ = 0; }
+    | DeclaratorSuffixes { $$ = $1; } /* TODO */
     ;
 
 DeclaratorSuffixes
-    : DeclaratorSuffix { $$ = 0; } /* TODO */
-    | DeclaratorSuffix DeclaratorSuffixes { $$ = 0; } /* TODO */
+    : DeclaratorSuffix { $$ = $1; } /* TODO */
+    | DeclaratorSuffix DeclaratorSuffixes { $$ = $1; } /* TODO */
     ;
 
 Constraintopt
@@ -777,7 +775,7 @@ DeclaratorSuffix
     : TOK_LEFT_SQUARE TOK_RIGHT_SQUARE { $$ = 0; } /* TODO */
     | TOK_LEFT_SQUARE AssignExpression TOK_RIGHT_SQUARE { $$ = 0; } /* TODO */
     | TOK_LEFT_SQUARE Type TOK_RIGHT_SQUARE { $$ = 0; } /* TODO */
-    | TemplateParametersopt Parameters MemberFunctionAttributesopt Constraintopt { $$ = new FunctionNode("", $2); } /* TODO */
+    | TemplateParametersopt Parameters MemberFunctionAttributesopt Constraintopt { $$ = $2; } /* TODO */
     ;
 
 IdentifierList
@@ -844,7 +842,7 @@ Declarator2
 
 Parameters
     : TOK_LEFT_PAR ParameterList TOK_RIGHT_PAR { $$ = $2; }
-    | TOK_LEFT_PAR TOK_RIGHT_PAR { $$ = 0; }
+    | TOK_LEFT_PAR TOK_RIGHT_PAR { $$ = new NodeList; }
     ;
 
 ParameterList
@@ -854,10 +852,10 @@ ParameterList
     ;
 
 Parameter
-    : InOutopt BasicType Declarator { $$ = $3; $3->setType($2); }
-    | InOutopt BasicType Declarator TOK_ELLIPSIS { $$ = $3; $3->setType($2); }
-    | InOutopt BasicType Declarator TOK_ASSIGN DefaultInitializerExpression { $$ = $3; $3->setType($2); }
-    | InOutopt Type { $$ = new DeclarationNode($2, std::string()); }
+    : InOutopt BasicType Declarator { $$ = new VariableNode($3->name(), $2); }
+    | InOutopt BasicType Declarator TOK_ELLIPSIS { $$ = new VariableNode($3->name(), $2); }
+    | InOutopt BasicType Declarator TOK_ASSIGN DefaultInitializerExpression { $$ = new VariableNode($3->name(), $2); }
+    | InOutopt Type { $$ = new VariableNode(std::string(), $2); }
     | InOutopt Type TOK_ELLIPSIS { $$ = 0; } /* TODO */
     ;
 

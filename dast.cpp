@@ -15,53 +15,22 @@ static std::string toString(int a)
     return buff;
 }
 
-static void generateTree(std::ostream& os, const Node& node, int depth = 0) {
-    for (int i = 0; i < depth; ++i) os << '-';
-    os << node.ToDebugString() << '\n';
-    for (Node::ChildsList::const_iterator it = node.childs().begin(); it != node.childs().end(); ++it)
-    {
-        generateTree(os, **it, depth + 1);
-    }
-}
-
-std::ostream& operator <<(std::ostream& os, const Node& node)
+std::ostream& operator <<(std::ostream& os, Node& node)
 {
-    generateTree(os, node);
+    DebugPrintVisitor v(os, 2, '-');
+    v.generateTree(node);
     return os;
 }
 
-std::string Node::ToDebugString() const
+void Node::setPosition(int first, int last)
 {
-    const char* typeStr = "UnknownType";
-    switch (m_type)
-    {
-    case MODULE : typeStr = "Module"; break;
-    case IMPORT : typeStr = "Import"; break;
-    case FUNCTION : typeStr = "Function"; break;
-    case CLASS: typeStr = "Class"; break;
-    case INTERFACE : typeStr = "Interface"; break;
-    case VARIABLE : typeStr = "Variable"; break;
-    case STRUCT : typeStr = "Struct"; break;
-    case UNION : typeStr = "Union"; break;
-    case LIST : typeStr = "List"; break;
-    case CONSTRUCTOR: typeStr = "Constructor"; break;
-    case DESTRUCTOR: typeStr = "Destructor"; break;
-    case PRIMITIVE_TYPE : typeStr = "PrimitiveType"; break;
-    case TYPE : typeStr = "Type"; break;
-    case OTHER : typeStr = "Other"; break;
-    }
-    std::string res = "[";
-    res += typeStr;
-    res += "]";
-    res += m_identifier;
-    if (!pos.isNull()) {
-        res+="(";
-        res+=toString(pos.first());
-        res+="-";
-        res+=toString(pos.last());
-        res+=")";
-    }
-    return res;
+    m_pos.m_first = first;
+    m_pos.m_last = last;
+}
+
+void Node::setPosition(const Lines &lines)
+{
+    this->m_pos = lines;
 }
 
 
@@ -96,15 +65,154 @@ std::string PrimitiveTypeNode::getPrimitiveTypeName(PrimitiveTypeNode::Type type
 }
 
 
-std::string DeclarationNode::ToDebugString() const
+void WithDefinitionNode::setDefinitionPosition(const Lines &lines)
 {
-    std::string res = "[Decl]" + (m_type?m_type->name():std::string()) + " " + name();
-    return res;
+    this->m_definition_pos = lines;
+}
+
+void WithDefinitionNode::setDefinitionPosition(int first, int last)
+{
+    setDefinitionPosition(Lines(first, last));
+}
+
+const Lines &WithDefinitionNode::getDefinitionPosition() const
+{
+    return this->m_definition_pos;
+}
+
+class SetDefinitionVisitor : public ThrowVisitor
+{
+public:
+    SetDefinitionVisitor(WithDefinitionNode* node) : node(node) {}
+    void visit(NodeList& list)
+    {
+        if (!node) throw std::runtime_error("Invalid node with definition");
+        node->addChild(&list);
+        node->setDefinitionPosition(list.getPosition());
+    }
+private:
+    WithDefinitionNode* node;
+};
+
+FunctionNode::FunctionNode(const std::string &name, Node *list)
+    : WithDefinitionNode(FUNCTION, name)
+{
+    if (!list) return;
+    if (list->childs().empty()) return;
+    for (ChildsList::iterator it = list->childs().begin(); it != list->childs().end(); ++it) {
+        parameters.addChild(*it);
+    }
+    addChild(list);
+}
+
+void FunctionNode::setDefinition(Node *scopeList)
+{
+
+}
+
+void FunctionNode::setReturnType(Node *type)
+{
+    this->returnType = type;
+}
+
+Node *FunctionNode::clone()
+{
+    return new FunctionNode(*this);
 }
 
 
-void DeclarationTypedList::addChild(Node *child)
+VariableNode::VariableNode(const std::string &name, Node *type)
+    : Node(VARIABLE, name), m_type(type)
 {
-    if (child) child->accept(*this);
-    NodeList::addChild(child);
+
+}
+
+void VariableNode::setType(Node *type)
+{
+    m_type = type;
+}
+
+VariableNode *VariableNode::clone()
+{
+    return new VariableNode(*this);
+}
+
+static std::string to_string(const Lines& lines)
+{
+    return std::string("(" + std::to_string(lines.first()) + "," + std::to_string(lines.last()) + ")");
+}
+
+static std::string getPositionString(const Node& node)
+{
+    return " decl" + to_string(node.getPosition());
+}
+
+static std::string getPositionString(const WithDefinitionNode& node)
+{
+    return getPositionString(*static_cast<const Node*>(&node)) + " def" + to_string(node.getDefinitionPosition());
+}
+
+void DebugPrintVisitor::visit(PrimitiveTypeNode&)
+{
+    throw std::runtime_error("PrimitiveTypeNode in AST");
+}
+
+void DebugPrintVisitor::visit(ModuleNode& module)
+{
+    os << "[Module]" << module.name() << getPositionString(module) << std::endl;
+}
+
+void DebugPrintVisitor::visit(ImportNode& import)
+{
+    os << "[Import]" << import.name() << getPositionString(import) << std::endl;
+}
+
+void DebugPrintVisitor::visit(ClassNode& cl)
+{
+    os << "[Class]" << cl.name() << getPositionString(cl) << std::endl;
+}
+
+void DebugPrintVisitor::visit(ConstructorNode& constructor)
+{
+    os << "[Constructor]" << getPositionString(constructor) << std::endl;
+}
+
+void DebugPrintVisitor::visit(DestructorNode& destructor)
+{
+    os << "[Destructor]" << getPositionString(destructor) << std::endl;
+}
+
+void DebugPrintVisitor::visit(IdentifierNode& id)
+{
+    os << "[Identifier]" << id.name() << std::endl;
+}
+
+void DebugPrintVisitor::visit(NodeList& list)
+{
+    os << "[List]" << list.name() << getPositionString(list) << std::endl;
+}
+
+void DebugPrintVisitor::visit(FunctionNode& func)
+{
+    os << "[Function]" << func.name() << getPositionString(func) << std::endl;
+}
+
+void DebugPrintVisitor::visit(VariableNode& var)
+{
+    os << "[Variable]" << var.name() << getPositionString(var) << std::endl;
+}
+
+void DebugPrintVisitor::generateTree(Node &node)
+{
+    for (int i = 0; i < step * depth; ++i)
+    {
+        os << indentChar;
+    }
+    node.accept(*this);
+    ++depth;
+    for (auto& child : node.childs())
+    {
+        generateTree(*child);
+    }
+    --depth;
 }
